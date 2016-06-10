@@ -3,7 +3,7 @@ from invoke import task, run
 
 @task
 def cfuncs():
-    run('gcc -Wall -Wextra -O -std=gnu99 -pedantic -fPIC -fvisibility=hidden -shared cfuncs.c -o cfuncs.so')
+    run('gcc -Wall -Wextra -O -std=gnu99 -pedantic -fPIC -fvisibility=hidden -shared render_outline.c -o render_outline.so')
     
 @task(cfuncs)
 def cftest():
