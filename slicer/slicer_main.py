@@ -21,6 +21,7 @@ class SlicerMain(QDialog):
         o.ui = Ui_Slicer()
         o.ui.setupUi(o)
         o.ui.btnOpenImageFile.clicked.connect(o.pick_source_image);
+        o.onFinish = None
         
     def accept(o):
         image_path = o.ui.txtImageFile.text()
@@ -72,6 +73,8 @@ class SlicerMain(QDialog):
         o.board.save_puzzle()
         o.board.save_state()
         L.info('puzzle was saved to %s.'%dst_path)
+        if o.onFinish:
+            o.onFinish(dst_path)
         
     def pick_source_image(o):
         pfd = PreviewFileDialog("Choose source image", "/home/jo/Daten/Bilder/bgpics", "Image files (*.jpg *.jpeg *.png *.gif *.bmp *.tiff)")
