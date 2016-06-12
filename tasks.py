@@ -12,6 +12,7 @@ def cftest():
 @task
 def uic():
     run('pyuic4 mainwindow.ui -o mainwindowUI.py')
+    run('pyuic4 slicer/slicer.ui -o slicer/slicerUI.py')
 
 @task
 def resources():
@@ -25,6 +26,6 @@ def all():
 def puzzle():
     run('python3 pinhole.py', pty=True)
 
-@task
+@task(uic)
 def slicer():
     run('python3 slicer_standalone.py')

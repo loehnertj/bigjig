@@ -4,37 +4,61 @@ import logging as L
 # Import Qt modules
 from PyQt4 import QtCore,QtGui
 from PyQt4.QtCore import Qt, QPoint, QRect # , pyqtSignature
-from PyQt4.QtGui import QWidget, QFileDialog, QImage, QPainter
+from PyQt4.QtGui import QDialog, QImage, QPainter
 
 from puzzleboard.puzzle_board import PuzzleBoard
 from puzzleboard.piece import Piece
 from puzzleboard.link import Link
 
 from .goldberg_engine import GoldbergEngine, GBEngineSettings
+from .slicerUI import Ui_Slicer
+from .preview_file_dialog import PreviewFileDialog
 from . import grid_rect
 
-class SlicerMain(QWidget):
-    def showEvent(o, ev):
-        source_image = o.pick_source_image()
+class SlicerMain(QDialog):
+    def __init__(o):
+        QDialog.__init__(o)
+        o.ui = Ui_Slicer()
+        o.ui.setupUi(o)
+        o.ui.btnOpenImageFile.clicked.connect(o.pick_source_image);
+        
+    def accept(o):
+        image_path = o.ui.txtImageFile.text()
+        if image_path=="":
+            o.ui.txtImageFile.setFocus()
+            return
+        piece_count = 20
+        if o.ui.pc_custom.isChecked():
+            piece_count = o.ui.pc_box.value()
+        else:
+            for pc in [20, 50, 100, 200, 500]:
+                if getattr(o.ui, "pc_%d"%pc).isChecked():
+                    piece_count = pc
+            
+        dst_path = '/home/jo/proggis/puzzle2/puzzles/outtest'
+        o.ui.buttonBox.setEnabled(False)
+        o.run(image_path, piece_count, dst_path)
+        o.close()
+        
+    def run(o, image_path, piece_count, dst_path):
+        L.debug('run')
+        if not image_path: return
+        if not dst_path: return
+    
         import shutil
         try:
-            shutil.rmtree('/home/jo/proggis/puzzle2/puzzles/outtest')
+            shutil.rmtree(dst_path)
         except FileNotFoundError:
             pass
-        o.run(source_image, '/home/jo/proggis/puzzle2/puzzles/outtest')
         
-    def run(o, source_image_path, dst_path):
-        L.debug('run')
-        if not source_image_path: return
-        if not dst_path: return
-        o.source_image = QImage(source_image_path)
+        o.source_image = QImage(image_path)
         try:
             os.makedirs(dst_path)
         except os.error:
             L.info('dst_path exists, cancel')
         os.makedirs(os.path.join(dst_path, 'pieces'))
         
-        puzzlename = os.path.splitext(os.path.basename(source_image_path))[0]
+        puzzlename = os.path.splitext(os.path.basename(image_path))[0]
         o.board = PuzzleBoard(
             name=puzzlename,
             rotations=grid_rect.rotations, # FIXME
@@ -43,15 +67,22 @@ class SlicerMain(QWidget):
         o.board.imagefolder=os.path.join(dst_path, 'pieces')
         settings = GBEngineSettings()
         engine = GoldbergEngine(o.add_piece_func, o.add_relation_func, settings)
-        engine(grid_rect.generate_grid, 50, o.source_image.width(), o.source_image.height())
+        engine(grid_rect.generate_grid, piece_count, o.source_image.width(), o.source_image.height())
         o.board.reset_puzzle()
         o.board.save_puzzle()
         o.board.save_state()
         L.info('puzzle was saved to %s.'%dst_path)
         
     def pick_source_image(o):
-        name = QFileDialog.getOpenFileName(o, "Choose source image", "/home/jo/Daten/Bilder/bgpics", "Image files (*.jpg *.jpeg *.png *.gif *.bmp *.tiff)")
-        return name
+        pfd = PreviewFileDialog("Choose source image", "/home/jo/Daten/Bilder/bgpics", "Image files (*.jpg *.jpeg *.png *.gif *.bmp *.tiff)")
+        def action(path):
+            o.ui.txtImageFile.setText(path)
+        pfd.fileSelected.connect(action)
+        # FIXME: should be screen resolution dependent
+        pfd.setMinimumSize(1200, 600)
+        print("show now")
+        sys.stdout.flush()
+        pfd.exec_()
     
     def add_piece_func(o, piece_id, mask_image, offset):
         # o.source_image required (QImage)
