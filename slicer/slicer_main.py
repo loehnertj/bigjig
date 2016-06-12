@@ -4,7 +4,7 @@ import logging as L
 # Import Qt modules
 from PyQt4 import QtCore,QtGui
 from PyQt4.QtCore import Qt, QPoint, QRect # , pyqtSignature
-from PyQt4.QtGui import QDialog, QImage, QPainter
+from PyQt4.QtGui import QDialog, QImage, QPainter, QFileDialog
 
 from puzzleboard.puzzle_board import PuzzleBoard
 from puzzleboard.piece import Piece
@@ -21,6 +21,7 @@ class SlicerMain(QDialog):
         o.ui = Ui_Slicer()
         o.ui.setupUi(o)
         o.ui.btnOpenImageFile.clicked.connect(o.pick_source_image);
+        o.ui.btnSaveTo.clicked.connect(o.pick_dst)
         o.onFinish = None
         
     def accept(o):
@@ -36,8 +37,8 @@ class SlicerMain(QDialog):
                 if getattr(o.ui, "pc_%d"%pc).isChecked():
                     piece_count = pc
             
-        dst_path = '/home/jo/proggis/puzzle2/puzzles/outtest'
         o.ui.buttonBox.setEnabled(False)
+        dst_path = o.ui.txtSaveTo.text()
         o.run(image_path, piece_count, dst_path)
         o.close()
         
@@ -83,9 +84,12 @@ class SlicerMain(QDialog):
         pfd.fileSelected.connect(action)
         # FIXME: should be screen resolution dependent
         pfd.setMinimumSize(1200, 600)
-        print("show now")
-        sys.stdout.flush()
         pfd.exec_()
+        
+    def pick_dst(o):
+        path = QFileDialog.getSaveFileName(o, "Choose folder", "", "Directory (*)")
+        if path:
+            o.ui.txtSaveTo.setText(path)
     
     def add_piece_func(o, piece_id, mask_image, offset):
         # o.source_image required (QImage)
