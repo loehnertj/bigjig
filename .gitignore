@@ -2,3 +2,4 @@
 /puzzles/**/*
 **/*.so
 **/*.kate-swp
+**/*UI.py
