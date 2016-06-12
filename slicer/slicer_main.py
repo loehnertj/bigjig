@@ -22,6 +22,14 @@ class SlicerMain(QDialog):
         o.ui.setupUi(o)
         o.ui.btnOpenImageFile.clicked.connect(o.pick_source_image);
         o.ui.btnSaveTo.clicked.connect(o.pick_dst)
+        o.grid_types = {
+            'Rectangular grid': grid_rect,
+            #'Hexagonal grid': None,
+        }
+        
+        for grid_type in o.grid_types.keys():
+            o.ui.cboGridType.addItem(grid_type)
+        o.ui.cboGridType.setCurrentIndex(0)
         o.onFinish = None
         
     def accept(o):
@@ -36,13 +44,14 @@ class SlicerMain(QDialog):
             for pc in [20, 50, 100, 200, 500]:
                 if getattr(o.ui, "pc_%d"%pc).isChecked():
                     piece_count = pc
-            
-        o.ui.buttonBox.setEnabled(False)
+        grid_generator = o.grid_types[o.ui.cboGridType.currentText()]
         dst_path = o.ui.txtSaveTo.text()
-        o.run(image_path, piece_count, dst_path)
+        
+        o.ui.buttonBox.setEnabled(False)
+        o.run(image_path, dst_path, piece_count, grid_generator)
         o.close()
         
-    def run(o, image_path, piece_count, dst_path):
+    def run(o, image_path, dst_path, piece_count, grid_generator):
         L.debug('run')
         if not image_path: return
         if not dst_path: return
