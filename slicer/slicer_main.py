@@ -14,6 +14,7 @@ from .goldberg_engine import GoldbergEngine, GBEngineSettings
 from .slicerUI import Ui_Slicer
 from .preview_file_dialog import PreviewFileDialog
 from . import grid_rect
+from . import grid_hex
 
 class SlicerMain(QDialog):
     def __init__(o):
@@ -24,7 +25,7 @@ class SlicerMain(QDialog):
         o.ui.btnSaveTo.clicked.connect(o.pick_dst)
         o.grid_types = {
             'Rectangular grid': grid_rect,
-            #'Hexagonal grid': None,
+            'Hexagonal grid': grid_hex,
         }
         
         for grid_type in o.grid_types.keys():
@@ -49,6 +50,7 @@ class SlicerMain(QDialog):
         
         o.ui.buttonBox.setEnabled(False)
         o.run(image_path, dst_path, piece_count, grid_generator)
+        o.ui.buttonBox.setEnabled(True)
         o.close()
         
     def run(o, image_path, dst_path, piece_count, grid_generator):
@@ -72,13 +74,13 @@ class SlicerMain(QDialog):
         puzzlename = os.path.splitext(os.path.basename(image_path))[0]
         o.board = PuzzleBoard(
             name=puzzlename,
-            rotations=grid_rect.rotations, # FIXME
+            rotations=grid_generator.rotations,
         )
         o.board.basefolder=dst_path
         o.board.imagefolder=os.path.join(dst_path, 'pieces')
         settings = GBEngineSettings()
         engine = GoldbergEngine(o.add_piece_func, o.add_relation_func, settings)
-        engine(grid_rect.generate_grid, piece_count, o.source_image.width(), o.source_image.height())
+        engine(grid_generator.generate_grid, piece_count, o.source_image.width(), o.source_image.height())
         o.board.reset_puzzle()
         o.board.save_puzzle()
         o.board.save_state()
