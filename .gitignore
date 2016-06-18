@@ -3,3 +3,4 @@
 **/*.so
 **/*.kate-swp
 **/*UI.py
+/slicer/goldberg
