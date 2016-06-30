@@ -80,6 +80,8 @@ class PuzzleBoard(object):
                 piece.cluster = cluster
         
     def save_state(o):
+        if not o.basefolder:
+            raise ValueError('State cannot be saved without base folder')
         clusterfile = os.path.join(o.basefolder, 'clusters.json')
         with open(clusterfile, 'w') as f:
             f.write(as_jsonstring(o.clusters_as_jsonstruct()))
@@ -90,6 +92,8 @@ class PuzzleBoard(object):
         }
     
     def save_puzzle(o):
+        if not o.basefolder:
+            raise ValueError('Puzzle has no basefolder set.')
         puzzlefile = os.path.join(o.basefolder, 'puzzle.json')
         with open(puzzlefile, 'w') as f:
             f.write(as_jsonstring(o.puzzle_as_jsonstruct()))
