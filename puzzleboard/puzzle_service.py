@@ -53,7 +53,7 @@ class PuzzleService(object):
             # send new puzzle to all players
             self.send_puzzle(None)
             
-    def on_save_puzzle(self, sender, path):
+    def on_save_puzzle(self, sender):
         if sender!='stdio':
             L().warning('save_puzzle command only allowed from stdio.')
             return
