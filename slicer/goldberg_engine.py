@@ -288,7 +288,8 @@ class GoldbergEngine(object):
         painter.translate(-mask_rect.topLeft())
         #we explicitly use a pen stroke in order to let the pieces overlap a bit (which reduces rendering glitches at the edges where puzzle pieces touch)
         # 1.0 still leaves the slightest trace of a glitch. but making the stroke thicker makes the plugs appear non-matching even when they belong together.
-        painter.setPen(QPen(Qt.black, 1.0))
+        # 2016-06-18: changed to 0.5 -- bevel looks better
+        painter.setPen(QPen(Qt.black, 0.5))
         painter.setBrush(Qt.black)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.drawPath(path)
