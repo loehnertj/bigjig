@@ -29,3 +29,10 @@ def puzzle():
 @task(uic)
 def slicer():
     run('python3 slicer_standalone.py')
+    
+@task
+def testboard():
+    '''Run puzzleboard service listening on stdin;
+    read testcommands.txt and pipe line-by-line to the service.
+    '''
+    run("cat testcommands.txt | while read CMD; do echo $CMD; sleep 1; done | tee /dev/stderr | python3 -m puzzleboard")

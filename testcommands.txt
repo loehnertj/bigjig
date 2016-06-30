@@ -1,0 +1,5 @@
+{"__method":"connect", "name":"Brian"}
+{"__method":"load_puzzle", "path":"/home/jo/proggis/puzzle2/puzzles/outtest"}
+{"__method":"save_puzzle"}
+{"__method":"restart_puzzle"}
+{"__method":"quit"}
