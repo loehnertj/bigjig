@@ -2,4 +2,8 @@
 {"__method":"load_puzzle", "path":"/home/jo/proggis/puzzle2/puzzles/outtest"}
 {"__method":"save_puzzle"}
 {"__method":"restart_puzzle"}
+{"__method":"get_puzzle"}
+{"__method":"get_pieces", "pieces":[2]}
+{"__method":"grab", "clusters":[2]}
+{"__method":"drop", "clusters":[2]}
 {"__method":"quit"}
