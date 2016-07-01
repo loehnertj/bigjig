@@ -88,7 +88,8 @@ class PuzzleBoard(object):
             
     def clusters_as_jsonstruct(o):
         return {
-            'clusters': o.clusters,
+            'clusters': [cluster.as_jsonstruct() for cluster in o.clusters],
+        }
         }
     
     def save_puzzle(o):
