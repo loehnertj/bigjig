@@ -1,6 +1,8 @@
 import logging
 L = lambda: logging.getLogger(__name__)
 
+import os
+
 from .puzzle_api import PuzzleAPI
 from .puzzle_board import PuzzleBoard
 
@@ -13,6 +15,8 @@ class PuzzleService(object):
         
         self.board = PuzzleBoard()
         self.players = {}
+        # player id -> list of grabbed clusters
+        self.grabbed_clusters_by_player = {}
         
         self._init_handlers()
         
@@ -32,15 +36,24 @@ class PuzzleService(object):
             L().warning('quit command only allowed from stdio')
             return
         self.quit_handler()
-                
+        
+    # ---- Player management ----
+    
     def on_connect(self, sender, name):
         # TODO: check that the name does not contain evil stuff.
         self.players[sender] = name
+        self.grabbed_clusters_by_player[sender] = []
         
     def on_disconnect(self, sender):
-        # TODO: drop pieces of sender
+        # drop all pieces of sender
+        self.on_drop(sender, [cluster.id for cluster in self._get_grabbed(sender)])
+        # forget about him
         del self.players[sender]
+        del self.grabbed_clusters_by_player[sender]
         
+        
+    # ---- puzzle load/save/reset ----
+    
     def on_load_puzzle(self, sender, path):
         if sender!='stdio':
             L().warning('load_puzzle command only allowed from stdio.')
@@ -61,6 +74,7 @@ class PuzzleService(object):
             self.board.save_state()
         except ValueError as e:
             L().error(e)
+        L().info('puzzle state was saved')
             
     def on_restart_puzzle(self, sender):
         if sender!='stdio':
@@ -68,10 +82,84 @@ class PuzzleService(object):
             return
         self.board.reset_puzzle()
         self.send_clusters(None)
+        L().info('puzzle was restarted')
+        
+    
+    # ---- bulk data transmission
     
     def send_puzzle(self, receivers):
-        # FIXME
-        pass
+        self.api.puzzle(
+            receivers,
+            puzzle_data = self.board.puzzle_as_jsonstruct(),
+            cluster_data = self.board.clusters_as_jsonstruct()
+        )
     
     def send_clusters(self, receivers):
-        pass
+        self.api.clusters(
+            receivers,
+            cluster_data = self.board.clusters_as_jsonstruct()
+        )
+        
+    def on_get_puzzle(self, sender):
+        self.send_puzzle(sender)
+        
+    def on_get_pieces(self, sender, pieces=None):
+        if not pieces:
+            pieces = [p.id for p in self.board.pieces]
+        pixmaps = {}
+        for pieceid in pieces:
+            try:
+                piece = self.board.pieces_by_id[pieceid]
+            except KeyError:
+                L().warning('%s requested pixmap for nonexisting piece id %d'%(sender, pieceid))
+                continue
+            path = os.path.join(self.board.imagefolder, piece.image)
+            with open(path, "rb") as f:
+                pixmaps[piece.id] = f.read()
+        self.api.piece_pixmaps(sender, pixmaps=pixmaps)
+        
+    
+    # ---- piece movement ----
+    
+    def _get_clusters(self, cluster_ids):
+        cc = []
+        # existing clusters only
+        for cluster in self.board.clusters:
+            if cluster.id in cluster_ids:
+                cc.append(cluster)
+        return cc
+    
+    def _get_grabbed(self, sender):
+        if sender not in self.grabbed_clusters_by_player:
+            self.grabbed_clusters_by_player[sender] = []
+        return self.grabbed_clusters_by_player[sender]
+    
+    def on_grab(self, sender, clusters):
+        clusters = self._get_clusters(clusters)
+        # remove all clusters that are grabbed by any player (including sender)
+        all_grabbed_clusters = sum(self.grabbed_clusters_by_player.values(), [])
+        for cluster in clusters:
+            if cluster in all_grabbed_clusters: 
+                clusters.remove(cluster)
+        
+        grabbed_clusters = self._get_grabbed(sender)
+        grabbed_clusters += clusters
+        
+        clusterids = [cluster.id for cluster in clusters]
+        L().debug('%s grabbed clusters %s'%(sender, clusterids))
+        self.api.grabbed(None, playerid=sender, clusters = clusterids)
+        
+        
+    def on_drop(self, sender, clusters):
+        clusters = self._get_clusters(clusters)
+        grabbed_clusters = self._get_grabbed(sender)
+        clusters = [cluster for cluster in clusters if cluster in grabbed_clusters]
+        
+        for cluster in clusters:
+            grabbed_clusters.remove(cluster)
+        
+        clusterids = [cluster.id for cluster in clusters]
+        L().debug('%s dropped clusters %s'%(sender, clusterids))
+        self.api.dropped(None, clusters = clusterids)
+        # FIXME: check join
+        L().warning('FIXME: check for join')
