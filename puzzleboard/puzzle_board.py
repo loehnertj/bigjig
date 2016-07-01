@@ -90,6 +90,13 @@ class PuzzleBoard(object):
         return {
             'clusters': [cluster.as_jsonstruct() for cluster in o.clusters],
         }
+    
+    def puzzle_as_jsonstruct(o):
+        return {
+            'name': o.name,
+            'rotations': o.rotations,
+            'pieces': [piece.as_jsonstruct() for piece in o.pieces],
+            'links': [link.as_jsonstruct() for link in o.links],
         }
     
     def save_puzzle(o):
@@ -99,11 +106,6 @@ class PuzzleBoard(object):
         with open(puzzlefile, 'w') as f:
             f.write(as_jsonstring(o.puzzle_as_jsonstruct()))
             
-    def puzzle_as_jsonstruct(o):
-        return {
-            key: getattr(o, key)
-            for key in ['name', 'rotations', 'pieces', 'links']
-        }
     
     def move_cluster(o, cluster, x, y, rotation):
         cluster.x = x
