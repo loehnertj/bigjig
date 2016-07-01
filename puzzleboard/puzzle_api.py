@@ -6,6 +6,8 @@ class PuzzleAPI(RemoteAPI):
         '''stop the server'''
         pass
     
+    # ---- player management ----
+    
     @incoming
     def connect(self, sender, name):
         '''registers the given name as alias for the sender.'''
@@ -27,6 +29,7 @@ class PuzzleAPI(RemoteAPI):
     def disconnected(self, receivers, playerid):
         '''tells other clients that someone disconnected.'''
         pass
+        
         
     # ---- puzzle administration ----
     
@@ -55,7 +58,7 @@ class PuzzleAPI(RemoteAPI):
         pass
     
     @outgoing
-    def ret_puzzle(self, receivers, puzzle_data, cluster_data):
+    def puzzle(self, receivers, puzzle_data, cluster_data):
         '''send current puzzle data (structured as in puzzle.json)'''
         pass
         
@@ -73,12 +76,14 @@ class PuzzleAPI(RemoteAPI):
         pass
         
     @outgoing
-    def ret_pieces(self, receivers, pieces):
+    def piece_pixmaps(self, receivers, pixmaps):
         '''send puzzle piece images.
-        pieces is a dict {pieceid: data}, where data are the
+        pixmaps is a dict {pieceid: data}, where data are the
         raw bytes of the image file.
         '''
         pass
+    
+    # ---- piece movement ---
     
     @incoming
     def grab(self, sender, clusters):
