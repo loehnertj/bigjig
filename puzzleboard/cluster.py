@@ -2,6 +2,10 @@ from math import sin, cos, pi
 import json
 
 class Cluster(object):
+    @property
+    def id(o):
+        return min(piece.id for piece in o.pieces)
+            
     def __init__(o, x=0, y=0, rotation=0, rotations=0, pieces=None, **kwargs):
         o.x = x
         o.y = y
@@ -33,3 +37,6 @@ class Cluster(object):
         xr = x * cosval + y * sinval
         yr = -x * sinval + y * cosval
         return xr, yr
+    
+    def __str__(o):
+        return '%s'%o.as_jsonstruct()
