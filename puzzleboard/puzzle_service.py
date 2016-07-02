@@ -161,5 +161,54 @@ class PuzzleService(object):
         clusterids = [cluster.id for cluster in clusters]
         L().debug('%s dropped clusters %s'%(sender, clusterids))
         self.api.dropped(None, clusters = clusterids)
-        # FIXME: check join
-        L().warning('FIXME: check for join')
+        
+        # check joins
+        for cluster in clusters:
+            joinable_clusters = self.board.joinable_clusters(cluster)
+            if not joinable_clusters: continue
+        
+            # drop all joinable clusters and remove from clusters list
+            for jc in joinable_clusters:
+                for gc in self.grabbed_clusters_by_player.values():
+                    if jc in gc:
+                        gc.remove(jc)
+                        self.api.dropped(None, clusters=[jc.id])
+                if jc in clusters:
+                    clusters.remove(jc)
+                    
+            # execute join
+            # The new cluster will have the lowest id of all joined clusters.
+            clusterid = min([cluster.id for cluster in joinable_clusters+[cluster]])
+            jcids = [jc.id for jc in joinable_clusters+[cluster]]
+            jcids.remove(clusterid)
+            
+            self.board.join(joinable_clusters, to_cluster=cluster)
+            self.api.joined(None, cluster=clusterid, joined_clusters=jcids, position=cluster.position)
+            
+    def on_move(self, sender, cluster_positions):
+        clusters = self._get_clusters([int(key) for key in cluster_positions.keys()])
+        grabbed_clusters = self._get_grabbed(sender)
+        clusters = [cluster for cluster in clusters if cluster in grabbed_clusters]
+        
+        new_positions = {}
+        for cluster in clusters:
+            pos = cluster_positions[str(cluster.id)]
+            self.board.move_cluster(cluster, pos['x'], pos['y'], pos['rotation'])
+            new_positions[str(cluster.id)] = cluster.position
+        self.api.moved(None, cluster_positions=new_positions)
+        
+    def on_rearrange(self, sender, clusters, x=None, y=None):
+        clusters = self._get_clusters(clusters)
+        grabbed_clusters = self._get_grabbed(sender)
+        clusters = [cluster for cluster in clusters if cluster in grabbed_clusters]
+        
+        pos = None
+        if x is not None and y is not None:
+            pos = (x, y)
+        
+        self.board.rearrange(clusters, pos)
+        new_positions = {
+            str(cluster.id): cluster.position
+            for cluster in clusters
+        }
+        self.api.moved(None, cluster_positions=new_positions)
