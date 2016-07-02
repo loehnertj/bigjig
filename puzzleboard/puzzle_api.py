@@ -126,7 +126,7 @@ class PuzzleAPI(RemoteAPI):
         pass
     
     @outgoing
-    def joined(self, receivers, clusters, joined_clusters, position):
+    def joined(self, receivers, cluster, joined_clusters, position):
         '''on join: joined_clusters (list) are merged into cluster.
         position = {x:, y:, rotation:} gives the new position.'''
         pass
