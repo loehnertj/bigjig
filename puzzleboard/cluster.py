@@ -5,6 +5,14 @@ class Cluster(object):
     @property
     def id(o):
         return min(piece.id for piece in o.pieces)
+    
+    @property
+    def position(o):
+        return {
+            'x': o.x,
+            'y': o.y,
+            'rotation': o.rotation,
+        }
             
     def __init__(o, x=0, y=0, rotation=0, rotations=0, pieces=None, **kwargs):
         o.x = x
