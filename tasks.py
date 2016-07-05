@@ -35,4 +35,4 @@ def testboard():
     '''Run puzzleboard service listening on stdin;
     read testcommands.txt and pipe line-by-line to the service.
     '''
-    run("cat testcommands.txt | while read CMD; do echo $CMD; sleep 1; done | tee /dev/stderr | python3 -m puzzleboard")
+    run("cat testcommands.txt | while read CMD; do echo $CMD; sleep 3; done | tee /dev/stderr | python3 -m puzzleboard")
