@@ -24,7 +24,7 @@ class _RenderSettings(Structure):
         ("illum_y", c_float),
     ]
 
-.
+
 if cfuncs:
     def outline(qimage, border_width=None, illum_angle=0, rel_strength=.015, max_strength=120):
         '''add piece outline to the given qimage.

@@ -6,7 +6,7 @@ from PyQt4.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
 from PyQt4.QtGui import QImage, QPixmap, QColor, QStaticText, QStyle
 from PyQt4.QtGui import QGraphicsItem, QGraphicsWidget, QGraphicsPixmapItem
 
-from render_outline import outline
+from .render_outline import outline
 
 class PieceItem(QGraphicsPixmapItem):
     def __init__(o, path, parent):

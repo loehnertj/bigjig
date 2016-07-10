@@ -163,7 +163,8 @@
   </action>
   <action name="actionNewPuzzle">
    <property name="icon">
-    <iconset theme="document-new"/>
+    <iconset theme="document-new">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;New Puzzle</string>
@@ -177,7 +178,7 @@
   <customwidget>
    <class>MainView</class>
    <extends>QGraphicsView</extends>
-   <header>main_view</header>
+   <header>.main_view</header>
    <slots>
     <slot>viewAll()</slot>
    </slots>

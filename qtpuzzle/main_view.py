@@ -4,7 +4,7 @@ from PyQt4.QtCore import Qt, QPoint
 from PyQt4.QtGui import QGraphicsView
 from PyQt4.QtOpenGL import QGLWidget
 
-from input_tracker import InputTracker
+from .input_tracker import InputTracker
 
 class MainView(QGraphicsView):
     def __init__(self, *args):

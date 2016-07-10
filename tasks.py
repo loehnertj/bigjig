@@ -3,7 +3,7 @@ from invoke import task, run
 
 @task
 def cfuncs():
-    run('gcc -Wall -Wextra -O -std=gnu99 -pedantic -fPIC -fvisibility=hidden -shared render_outline.c -o _render_outline.so')
+    run('gcc -Wall -Wextra -O -std=gnu99 -pedantic -fPIC -fvisibility=hidden -shared qtpuzzle/render_outline.c -o qtpuzzle/_render_outline.so')
     
 @task(cfuncs)
 def cftest():
@@ -11,12 +11,12 @@ def cftest():
     
 @task
 def uic():
-    run('pyuic4 mainwindow.ui -o mainwindowUI.py')
+    run('pyuic4 qtpuzzle/mainwindow.ui --from-imports  -o qtpuzzle/mainwindowUI.py')
     run('pyuic4 slicer/slicer.ui -o slicer/slicerUI.py')
 
 @task
 def resources():
-    run('pyrcc4 -py3 icons.qrc -o icons_rc.py')
+    run('pyrcc4 -py3 qtpuzzle/icons.qrc -o qtpuzzle/icons_rc.py')
 
 @task(uic, resources)
 def all():
@@ -24,7 +24,7 @@ def all():
 
 @task(all, default=True)
 def puzzle():
-    run('python3 pinhole.py', pty=True)
+    run('python3 -m qtpuzzle', pty=True)
 
 @task(uic)
 def slicer():

@@ -8,8 +8,8 @@ from PyQt4.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
 from PyQt4.QtGui import QBrush, QColor, QPen, QPixmap
 from PyQt4.QtGui import QGraphicsScene, QGraphicsRectItem
 
-from input_tracker import InputTracker
-from cluster_widget import ClusterWidget
+from .input_tracker import InputTracker
+from .cluster_widget import ClusterWidget
 from puzzleboard.puzzle_board import PuzzleBoard
 
 

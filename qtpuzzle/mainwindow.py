@@ -13,11 +13,11 @@ from PyQt4.QtCore import Qt, QSettings # , pyqtSignature
 from PyQt4.QtGui import QMainWindow, QFileDialog, QAction, QMessageBox, QGraphicsScene
 
 # Import the compiled UI module
-from mainwindowUI import Ui_MainWindow
+from .mainwindowUI import Ui_MainWindow
 
-from i18n import tr
+from .i18n import tr
 
-from puzzle_scene import PuzzleScene
+from .puzzle_scene import PuzzleScene
 
 from puzzleboard.puzzle_board import PuzzleBoard
 from puzzleboard.puzzle_board import as_jsonstring

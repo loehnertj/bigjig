@@ -5,7 +5,7 @@ import os,sys
 # Import Qt modules
 from PyQt4.QtGui import QApplication
 
-from mainwindow import MainWindow
+from .mainwindow import MainWindow
 
 def main():
     # Again, this is boilerplate, it's going to be the same on
