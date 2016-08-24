@@ -18,6 +18,9 @@ from .mainwindowUI import Ui_MainWindow
 from .i18n import tr
 
 from .puzzle_scene import PuzzleScene
+from .puzzle_client import PuzzleClient
+from neatocom.qprocess_transport import QProcessTransport
+from neatocom.json_codec import JsonCodec
 
 from puzzleboard.puzzle_board import PuzzleBoard
 from puzzleboard.puzzle_board import as_jsonstring
@@ -59,9 +62,23 @@ class MainWindow(QMainWindow):
             self.load_puzzle(path)
         self.ui.actionAutosave.setChecked(settings.value("Autosave", "true")=="true")
         
+        self.client = self.initPuzzleClient()
+        self.client.connect("SirLancelot")
+        self.client.connect("EvilBunny")
+        
+    def initPuzzleClient(self):
+        transport = QProcessTransport('{python} -m puzzleboard'.format(python=sys.executable))
+        codec = JsonCodec()
+        client = PuzzleClient(codec, transport)
+        transport.start()
+        return client
+        
     def closeEvent(self, ev):
         self.ui.mainView.gl_widget.setParent(None)
         del self.ui.mainView.gl_widget
+        self.client.quit()
+        import time
+        time.sleep(1)
         
     def showEvent(self, ev):
         self.ui.mainView.viewAll()
