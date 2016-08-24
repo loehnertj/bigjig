@@ -5,10 +5,6 @@ from invoke import task, run
 def cfuncs():
     run('gcc -Wall -Wextra -O -std=gnu99 -pedantic -fPIC -fvisibility=hidden -shared qtpuzzle/render_outline.c -o qtpuzzle/_render_outline.so')
     
-@task(cfuncs)
-def cftest():
-    run('python3 test_cfuncs.py')
-    
 @task
 def uic():
     run('pyuic4 qtpuzzle/mainwindow.ui --from-imports  -o qtpuzzle/mainwindowUI.py')
