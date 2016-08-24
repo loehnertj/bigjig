@@ -11,7 +11,7 @@ class PuzzleAPI(RemoteAPI):
     @incoming
     def connect(self, sender, name):
         '''registers the given name as alias for the sender.'''
-        self.connected(playerid=sender, name=name)
+        pass
         
     @outgoing
     def connected(self, receivers, playerid, name):
@@ -23,7 +23,7 @@ class PuzzleAPI(RemoteAPI):
         '''drops everything that is grabbed by the sender and
         tells the others that he disconnected.
         '''
-        self.disconnected(playerid=sender)
+        pass
         
     @outgoing
     def disconnected(self, receivers, playerid):

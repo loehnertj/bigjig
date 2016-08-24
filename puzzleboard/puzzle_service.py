@@ -35,6 +35,7 @@ class PuzzleService(object):
         if sender!='stdio':
             L().warning('quit command only allowed from stdio')
             return
+        L().info("invoke quit")
         self.quit_handler()
         
     # ---- Player management ----
@@ -43,6 +44,7 @@ class PuzzleService(object):
         # TODO: check that the name does not contain evil stuff.
         self.players[sender] = name
         self.grabbed_clusters_by_player[sender] = []
+        self.api.connected(None, playerid=sender, name=name)
         
     def on_disconnect(self, sender):
         # drop all pieces of sender
@@ -50,6 +52,7 @@ class PuzzleService(object):
         # forget about him
         del self.players[sender]
         del self.grabbed_clusters_by_player[sender]
+        self.api.disconnected(None, playerid=sender)
         
         
     # ---- puzzle load/save/reset ----
