@@ -25,3 +25,4 @@ service = PuzzleService(
 
 L().info('start running')
 transport.run()
+L().info('exiting')
