@@ -59,12 +59,22 @@ class PuzzleAPI(RemoteAPI):
     
     @outgoing
     def puzzle(self, receivers, puzzle_data, cluster_data):
-        '''send current puzzle data (structured as in puzzle.json)'''
+        '''send current puzzle data. Schema:
+        puzzle_data : {
+            name: str,
+            rotations: int,
+            pieces: [{id: int, image:str, x0, y0, w, h: int}],
+            links: [{id1, id2, x, y: int}]
+        }
+        cluster_data : {
+            clusters: [{x, y, rotation:int, pieces:[int,]}]
+        }
+        '''
         pass
         
     @outgoing
     def clusters(self, receivers, cluster_data):
-        '''send current cluster data (structured as in clusters.json)
+        '''send current cluster data (schema see puzzle())
         Broadcast when big changes occur e.g. puzzle reset.
         '''
         pass
@@ -80,6 +90,8 @@ class PuzzleAPI(RemoteAPI):
         '''send puzzle piece images.
         pixmaps is a dict {pieceid: data}, where data are the
         raw bytes of the image file.
+        
+        !! Note !! The keys are strings.
         '''
         pass
     
