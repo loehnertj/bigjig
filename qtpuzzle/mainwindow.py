@@ -3,8 +3,8 @@
 """The user interface for our app"""
 
 import os,sys
-import logging as L
-L.basicConfig(level='DEBUG')
+import logging
+L = lambda: logging.getLogger(__name__)
 
 
 # Import Qt modules
@@ -21,9 +21,6 @@ from .puzzle_scene import PuzzleScene
 from .puzzle_client import PuzzleClient
 from neatocom.qprocess_transport import QProcessTransport
 from neatocom.json_codec import JsonCodec
-
-from puzzleboard.puzzle_board import PuzzleBoard
-from puzzleboard.puzzle_board import as_jsonstring
 
 from slicer.slicer_main import SlicerMain
 
@@ -52,9 +49,15 @@ class MainWindow(QMainWindow):
             getattr(self.ui, key).triggered.connect(func)
         
         self.ui.actionAutosave.toggled.connect(self.toggle_autosave)
-        self.ui.mainView.setScene(QGraphicsScene())
 
         self._slicer = None
+        
+        
+        self.client = self.initPuzzleClient()
+        self.client.connect(name="SirLancelot")
+        
+        self.scene = PuzzleScene(self.ui.mainView, self.client)
+        self.ui.mainView.setScene(self.scene)
         
         settings = QSettings()
         path = settings.value("LastOpened", "")
@@ -62,29 +65,31 @@ class MainWindow(QMainWindow):
             self.load_puzzle(path)
         self.ui.actionAutosave.setChecked(settings.value("Autosave", "true")=="true")
         
-        self.client = self.initPuzzleClient()
-        self.client.connect("SirLancelot")
-        self.client.connect("EvilBunny")
-        
     def initPuzzleClient(self):
         transport = QProcessTransport('{python} -m puzzleboard'.format(python=sys.executable))
         codec = JsonCodec()
         client = PuzzleClient(codec, transport)
+        client.connected.connect(self.on_player_connect)
+        client.moved.connect(self.on_pb_changed)
+        client.joined.connect(self.on_pb_changed)
+        client.solved.connect(self.on_solved)
         transport.start()
         return client
+    
+    def on_player_connect(self, sender, playerid, name):
+        L().info('{} connected as {}'.format(playerid, name))
         
     def closeEvent(self, ev):
         self.ui.mainView.gl_widget.setParent(None)
         del self.ui.mainView.gl_widget
+        
         self.client.quit()
-        import time
-        time.sleep(1)
         
     def showEvent(self, ev):
         self.ui.mainView.viewAll()
         
     def save(self):
-        self.puzzle_board.save_state()
+        self.client.save_puzzle()
         
     def open(self):
         path = QFileDialog.getOpenFileName(self, "Choose Puzzle", "puzzles", "Puzzle files (puzzle.json)")
@@ -99,13 +104,7 @@ class MainWindow(QMainWindow):
     def load_puzzle(self, path):
         if path.endswith("puzzle.json"):
             path = os.path.dirname(path)
-        self.puzzle_board = PuzzleBoard.from_folder(path)
-        self.puzzle_board.on_changed = self.on_pb_changed
-        self.scene = PuzzleScene(
-            self.ui.mainView,
-            self.puzzle_board,
-        )
-        self.ui.mainView.setScene(self.scene)
+        self.client.load_puzzle(path=path)
         settings = QSettings()
         settings.setValue("LastOpened", path)
     
@@ -116,9 +115,7 @@ class MainWindow(QMainWindow):
     def reset_puzzle(self):
         if QMessageBox.Ok != QMessageBox.warning(self, "Reset puzzle", "Really reset the puzzle?", QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Cancel):
             return
-        self.puzzle_board.reset_puzzle()
-        self.scene = PuzzleScene(self.ui.mainView, self.puzzle_board)
-        self.ui.mainView.setScene(self.scene)
+        self.client.restart_puzzle()
         self.ui.mainView.viewAll()
         
     def selection_rearrange(self):
@@ -128,13 +125,11 @@ class MainWindow(QMainWindow):
     def selection_clear(self):
         self.scene.clearSelection()
         
-    def on_pb_changed(self):
+    def on_pb_changed(self, sender, **kwargs):
         if self.ui.actionAutosave.isChecked():
-            L.debug('autosaving')
-            self.save()
-        if len(self.puzzle_board.clusters) == 1:
-            self.on_solved()
+            L().debug('autosaving')
+            self.client.save_puzzle()
         
-    def on_solved(self):
+    def on_solved(self, sender):
         QMessageBox.information(self, "Puzzle solved.", "You did it!", "Yeehaw!!!")
         

@@ -10,7 +10,7 @@ from PyQt4.QtGui import QGraphicsScene, QGraphicsRectItem
 
 from .input_tracker import InputTracker
 from .cluster_widget import ClusterWidget
-from puzzleboard.puzzle_board import PuzzleBoard
+#from puzzleboard.puzzle_board import PuzzleBoard
 
 
 L = lambda: logging.getLogger(__name__)
@@ -34,20 +34,29 @@ KEYS = {
 
 
 class PuzzleScene(QGraphicsScene):
-    def __init__(o, parent, puzzle_board, *args):
+    def __init__(o, parent, puzzle_client, *args):
         QGraphicsScene.__init__(o, parent, *args)
         o._input_tracker = InputTracker(o, accepts=sum(KEYS.values(), []))
 
         o.setBackgroundBrush(QBrush(QColor("darkGray")))
-        o.puzzle_board = puzzle_board
+        o.client = puzzle_client
         o.cluster_map = {}
-        o._display_puzzle_board(puzzle_board)
+        
+        # connect my events
+        def fail(**kwargs):
+            raise NotImplementedError()
+        o.client.puzzle.connect(o._display_puzzle)
+        o.client.clusters.connect(fail)
+        o.client.piece_pixmaps.connect(o._set_piece_pixmaps)
+        # request puzzle data from server
+        o.client.get_puzzle()
 
         # init piece movement
         o.grab_active = False
         o.grabbed_widgets = None
         o.move_grab_offsets = None
         o.move_rotation = 0
+        # FIXME this should not be there -.-
         o._old_clusters = set()
 
         # init selection
@@ -58,13 +67,33 @@ class PuzzleScene(QGraphicsScene):
         o._rubberband.hide()
         o.addItem(o._rubberband)
 
-    def _display_puzzle_board(o, puzzle_board):
-        for cluster in puzzle_board.clusters:
-            cw = ClusterWidget(puzzle_board=puzzle_board, cluster=cluster)
+    def _display_puzzle(o, sender, puzzle_data, cluster_data):
+        print('display puzzle')
+        o.cluster_map = {}
+        o.rotations = puzzle_data.rotations
+        pieces = {piece.id: piece for piece in puzzle_data.pieces}
+        o._pieces_to_get = list(pieces.keys())
+        for cluster in cluster_data.clusters:
+            cw = ClusterWidget(clusterid=cluster.id, pieces=[pieces[pid] for pid in cluster.pieces])
             o.addItem(cw)
-            o.cluster_map[cluster] = cw
-            cw.updatePos()
+            o.cluster_map[cluster.id] = cw
+            cw.updatePos(cluster, rotations=o.rotations)
         o.updateSceneRect()
+        o.parent().viewAll()
+        # request piece images from the api
+        o._get_next_pieces()
+        
+    def _get_next_pieces(o):
+        if o._pieces_to_get:
+            p = o._pieces_to_get[:10]
+            del o._pieces_to_get[:10]
+            o.client.get_pieces(pieces=p)
+        
+    def _set_piece_pixmaps(o, sender, pixmaps):
+        print('got pieces: %r'%list(pixmaps.keys()))
+        for cw in o.cluster_map.values():
+            cw.setPieceImages(pixmaps)
+        o._get_next_pieces()
 
     def toggle_grab_mode(o, scene_pos, grab_active=None):
         if grab_active is None:
