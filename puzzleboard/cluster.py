@@ -31,6 +31,7 @@ class Cluster(object):
         return {
             'x': o.x, 
             'y': o.y,
+            'id': o.id,
             'rotation': o.rotation,
             'pieces': [piece.id for piece in o.pieces],
         }
