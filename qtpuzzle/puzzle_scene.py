@@ -3,6 +3,7 @@
 
 import os
 import logging
+from time import time
 
 from PyQt4.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
 from PyQt4.QtGui import QBrush, QColor, QPen, QPixmap
@@ -32,8 +33,14 @@ KEYS = {
     'select': [Qt.RightButton, Qt.Key_S],
 }
 
+# in seconds
+MOVE_SEND_INTERVAL = 0.2
 
 class PuzzleScene(QGraphicsScene):
+    @property
+    def grab_active(o):
+        return bool(o.grabbed_widgets)
+    
     def __init__(o, parent, puzzle_client, *args):
         QGraphicsScene.__init__(o, parent, *args)
         o._input_tracker = InputTracker(o, accepts=sum(KEYS.values(), []))
@@ -46,16 +53,24 @@ class PuzzleScene(QGraphicsScene):
         def fail(**kwargs):
             raise NotImplementedError()
         o.client.puzzle.connect(o._display_puzzle)
+        # FIXME
         o.client.clusters.connect(fail)
         o.client.piece_pixmaps.connect(o._set_piece_pixmaps)
+        o.client.grabbed.connect(o.onClustersGrabbed)
+        o.client.moved.connect(o.onClustersMoved)
+        o.client.dropped.connect(o.onClustersDropped)
+        o.client.joined.connect(o.onClustersJoined)
         # request puzzle data from server
         o.client.get_puzzle()
 
         # init piece movement
-        o.grab_active = False
-        o.grabbed_widgets = None
-        o.move_grab_offsets = None
-        o.move_rotation = 0
+        o.rotations = 1 # number of rotations that the puzzle allows
+        # List of cluster (widgets) that have been grabbed locally. dict clusterid -> ClusterWidget
+        o.grabbed_widgets = {}
+        # number of rotations (relative to initial rotation) having been applied to the grabbed widgets.
+        o._move_rotation = 0
+        # time of last position update (for rate limit)
+        o._last_move_send_time = 0
         # FIXME this should not be there -.-
         o._old_clusters = set()
 
@@ -69,15 +84,21 @@ class PuzzleScene(QGraphicsScene):
 
     def _display_puzzle(o, sender, puzzle_data, cluster_data):
         print('display puzzle')
+        o.grabbed_widgets = {}
         o.cluster_map = {}
         o.rotations = puzzle_data.rotations
         pieces = {piece.id: piece for piece in puzzle_data.pieces}
         o._pieces_to_get = list(pieces.keys())
         for cluster in cluster_data.clusters:
-            cw = ClusterWidget(clusterid=cluster.id, pieces=[pieces[pid] for pid in cluster.pieces])
+            cw = ClusterWidget(
+                clusterid=cluster.id,
+                pieces=[pieces[pid] for pid in cluster.pieces],
+                rotations=o.rotations,
+                client=o.client
+            )
             o.addItem(cw)
             o.cluster_map[cluster.id] = cw
-            cw.updatePos(cluster, rotations=o.rotations)
+            cw.setClusterPosition(cluster.x, cluster.y, cluster.rotation)
         o.updateSceneRect()
         o.parent().viewAll()
         # request piece images from the api
@@ -95,6 +116,7 @@ class PuzzleScene(QGraphicsScene):
             cw.setPieceImages(pixmaps)
         o._get_next_pieces()
 
+    # Piece movement #######################################
     def toggle_grab_mode(o, scene_pos, grab_active=None):
         if grab_active is None:
             grab_active = not o.grab_active
@@ -104,7 +126,6 @@ class PuzzleScene(QGraphicsScene):
         else:
             if not grab_active: return
             o.tryGrabWidgets(scene_pos)
-        o.grab_active = bool(o.grabbed_widgets)
 
     def tryGrabWidgets(o, scene_pos):
         item = o.itemAt(scene_pos)
@@ -112,37 +133,103 @@ class PuzzleScene(QGraphicsScene):
             widget = item.parentWidget()
             if widget.isSelected():
                 # lift all selected clusters
-                o.grabbed_widgets = o.selectedItems()
+                widgets = o.selectedItems()
             else:
-                o.grabbed_widgets = [widget]
-            o.move_grab_offsets = [w.pos() - scene_pos for w in o.grabbed_widgets]
-            o.move_rotation = 0
+                widgets = [widget]
+            o.grabbed_widgets = {}
+            for widget in widgets:
+                if widget.grabLocally(scene_pos):
+                    o.grabbed_widgets[widget.clusterid] = widget
+            o._move_rotation = 0
+            o._last_move_send_time = time()
+            if o.grabbed_widgets:
+                # send grab to the server
+                ids = list(o.grabbed_widgets.keys())
+                o.client.grab(clusters=ids)
         L().debug("lift: " + o.grabbed_widgets.__repr__())
 
-    def rotateGrabbedWidgets(o, clockwise=False):
-        o.move_rotation += (-1 if clockwise else 1)
-        for widget in o.grabbed_widgets:
-            r_deg = -360. * (widget.cluster.rotation + o.move_rotation) / widget.cluster.rotations
-            L().debug('new rotation: %g, in deg: %g' % (o.move_rotation, r_deg))
-            widget.setRotation(r_deg)
-
     def dropGrabbedWidgets(o):
-        for widget in o.grabbed_widgets:
-            o.dropWidget(widget)
-        for widget in o.grabbed_widgets:
-            o.checkJoin(widget)
-        o.grabbed_widgets = None
+        # Send last position unconditionally
+        o.sendPositions()
+        o.client.drop(clusters=list(o.grabbed_widgets.keys()))
+        o.grabbed_widgets = {}
         L().debug('dropped')
         o.updateSceneRect()
 
-    def dropWidget(o, widget):
-        new_pos = widget.pos()
-        rotation = (o.move_rotation + widget.cluster.rotation) % widget.cluster.rotations
-        if rotation<0:
-            rotation += widget.cluster.rotations
-        o.puzzle_board.move_cluster(cluster=widget.cluster, x=new_pos.x(), y=new_pos.y(), rotation=rotation)
-
-    def checkJoin(o, widget):
+    def repositionGrabbedPieces(o, scene_pos, rotate=0):
+        '''update position on screen (e.g. on mouse move).
+        rotate = number of rotation steps to take (once)
+        Send position update if timer allows.
+        '''
+        for widget in o.grabbed_widgets.values():
+            widget.repositionGrabbedPiece(scene_pos, rotate)
+        t = time()
+        if t-o._last_move_send_time > MOVE_SEND_INTERVAL:
+            o.sendPositions()
+            o._last_move_send_time = t
+        # disabled - leads to endless recursion due to triggering mouse move event
+        #o.updateSceneRect()
+            
+    def sendPositions(o):
+        positions = {}
+        for widget in o.grabbed_widgets.values():
+            new_pos = widget.pos()
+            rotation = widget.clusterRotation() % widget.rotations
+            if rotation<0:
+                rotation += widget.rotations
+            positions[str(widget.clusterid)] = {'x': new_pos.x(), 'y': new_pos.y(), 'rotation': rotation}
+        o.client.move(cluster_positions=positions)
+        
+    def selectionRearrange(o, pos=None):
+        items = o.selectedItems()
+        clusters = [i.clusterid for i in items]
+        # FIXME: get center of mass from clusters
+        x, y = (pos.x(), pos.y()) if pos else (None, None)
+        # fixme: order by position
+        o.client.grab(clusters=clusters)
+        # Clusters are not notified of being grabbed. The moved() message triggered by rearrange() will move them on-screen.
+        o.client.rearrange(clusters=clusters, x=pos.x(), y=pos.y())
+        o.client.drop(clusters=clusters)
+        o.updateSceneRect()
+        
+    def updateSceneRect(o):
+        r = o.itemsBoundingRect()
+        w, h = r.width(), r.height()
+        a = .1
+        r = r.adjusted(-w*a, -h*a, w*a, h*a)
+        o.setSceneRect(r)
+    
+    # Server messages #############################
+    def onClustersGrabbed(o, sender, clusters, playerid):
+        '''Server notifies that somebody (maybe me) has grabbed clusters.'''
+        def on_loss(widget):
+            '''called if the cluster was lost i.e. grabbed by somebody else.'''
+            try:
+                del o.grabbed_widgets[widget.clusterid]
+            except KeyError:
+                L().debug('lost cluster %d which was not grabbed in the first place!?'%widget.clusterid)
+        for clusterid in clusters:
+            o.cluster_map[clusterid].onClusterGrabbed(playerid=playerid, on_loss=on_loss)
+    
+    def onClustersMoved(o, sender, cluster_positions):
+        '''Server notifies that somebody (maybe me) has moved clusters.'''
+        for clusterid, position in cluster_positions.items():
+            o.cluster_map[int(clusterid)].onClusterMoved(
+                x=position.x,
+                y=position.y,
+                rotation=position.rotation
+            )
+    
+    def onClustersDropped(o, sender, clusters):
+        for clusterid in clusters:
+            o.cluster_map[clusterid].onClusterDropped()
+    
+    def onClustersJoined(o, sender, cluster, joined_clusters, position):
+        # FIXME
+        pass
+    
+    def checkjoin(o, widget):
+        # FIXME
         jc = o.puzzle_board.joinable_clusters(widget.cluster)
         if jc:
             o.puzzle_board.join(clusters=jc, to_cluster=widget.cluster)
@@ -163,34 +250,8 @@ class PuzzleScene(QGraphicsScene):
                 o._old_clusters.add(cw)
             # update position from puzzleboard
             widget.updatePos()
-
-        
-    def repositionGrabbedPieces(o, scene_pos):
-        for widget, ofs in zip(o.grabbed_widgets, o.move_grab_offsets):
-            x, y = widget.cluster.rotate(ofs.x(), ofs.y(), o.move_rotation)
-            widget.setPos(scene_pos + QPointF(x, y))
-            
-            
-    def selectionRearrange(o, pos=None):
-        items = o.selectedItems()
-        clusters = [i.cluster for i in items]
-        # FIXME: get center of mass from clusters
-        pos = (pos.x(), pos.y()) if pos else None
-        # fixme: order by position
-        o.puzzle_board.rearrange(clusters, pos)
-        for item in items:
-            item.setPos(item.cluster.x, item.cluster.y)
-        o.updateSceneRect()
-        
-    def updateSceneRect(o):
-        r = o.itemsBoundingRect()
-        w, h = r.width(), r.height()
-        a = .1
-        r = r.adjusted(-w*a, -h*a, w*a, h*a)
-        o.setSceneRect(r)
     
-    
-    # events
+    # events ################################
     def mouseMoveEvent(o, ev):
         QGraphicsScene.mouseMoveEvent(o, ev)
         o._input_tracker.mouseMoveEvent(ev)
@@ -207,8 +268,10 @@ class PuzzleScene(QGraphicsScene):
             if not o.grab_active and iev.key!=Qt.RightButton:
                 o.toggle_grab_mode(iev.startScenePos)
             if o.grab_active:
-                o.rotateGrabbedWidgets(clockwise=(iev.key in KEYS['rotate_CW']))
-                o.repositionGrabbedPieces(iev.startScenePos)
+                o.repositionGrabbedPieces(
+                    iev.startScenePos, 
+                    -1 if (iev.key in KEYS['rotate_CW']) else 1
+                )
         elif iev.key in KEYS['zoom']:
             o.parent().toggleZoom()
     
