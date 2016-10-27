@@ -53,7 +53,7 @@ class MainWindow(QMainWindow):
         self._slicer = None
         
         
-        self.client = self.initPuzzleClient()
+        self.client = self.initPuzzleClient('SirLancelot')
         self.client.connect(name="SirLancelot")
         
         self.scene = PuzzleScene(self.ui.mainView, self.client)
@@ -65,10 +65,10 @@ class MainWindow(QMainWindow):
             self.load_puzzle(path)
         self.ui.actionAutosave.setChecked(settings.value("Autosave", "true")=="true")
         
-    def initPuzzleClient(self):
+    def initPuzzleClient(self, nickname):
         transport = QProcessTransport('{python} -m puzzleboard'.format(python=sys.executable))
         codec = JsonCodec()
-        client = PuzzleClient(codec, transport)
+        client = PuzzleClient(codec, transport, nickname)
         client.connected.connect(self.on_player_connect)
         client.moved.connect(self.on_pb_changed)
         client.joined.connect(self.on_pb_changed)
