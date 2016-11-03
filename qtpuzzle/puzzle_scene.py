@@ -50,11 +50,7 @@ class PuzzleScene(QGraphicsScene):
         o.cluster_map = {}
         
         # connect my events
-        def fail(**kwargs):
-            raise NotImplementedError()
         o.client.puzzle.connect(o._display_puzzle)
-        # FIXME
-        o.client.clusters.connect(fail)
         o.client.piece_pixmaps.connect(o._set_piece_pixmaps)
         o.client.grabbed.connect(o.onClustersGrabbed)
         o.client.moved.connect(o.onClustersMoved)
