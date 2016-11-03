@@ -52,6 +52,7 @@ class PuzzleScene(QGraphicsScene):
         # connect my events
         o.client.puzzle.connect(o._display_puzzle)
         o.client.piece_pixmaps.connect(o._set_piece_pixmaps)
+        o.client.clusters.connect(o.OnClustersChanged)
         o.client.grabbed.connect(o.onClustersGrabbed)
         o.client.moved.connect(o.onClustersMoved)
         o.client.dropped.connect(o.onClustersDropped)
@@ -86,20 +87,43 @@ class PuzzleScene(QGraphicsScene):
         o.rotations = puzzle_data.rotations
         pieces = {piece.id: piece for piece in puzzle_data.pieces}
         o._pieces_to_get = list(pieces.keys())
-        for cluster in cluster_data.clusters:
-            cw = ClusterWidget(
-                clusterid=cluster.id,
-                pieces=[pieces[pid] for pid in cluster.pieces],
-                rotations=o.rotations,
-                client=o.client
-            )
-            o.addItem(cw)
-            o.cluster_map[cluster.id] = cw
-            cw.setClusterPosition(cluster.x, cluster.y, cluster.rotation)
+        o._create_clusters(cluster_data, piece_defs=pieces)
         o.updateSceneRect()
         o.parent().viewAll()
         # request piece images from the api
         o._get_next_pieces()
+        
+    def OnClustersChanged(o, sender, cluster_data):
+        L().debug('clusters changed')
+        pieces = {}
+        for cw in o.cluster_map.values():
+            for piece in cw.pieceItems():
+                pieces[piece.id] = piece
+        o.grabbed_widgets = {}
+        old_clusters = list(o.cluster_map.values())
+        o.cluster_map = {}
+        o._create_clusters(cluster_data, piece_items=pieces)
+        for cw in old_clusters:
+            o.removeItem(cw)
+        o.updateSceneRect()
+        
+    def _create_clusters(o, cluster_data, piece_defs=None, piece_items=None):
+        pieces = []
+        for cluster in cluster_data.clusters:
+            if piece_defs:
+                pieces = [piece_defs[pid] for pid in cluster.pieces]
+            cw = ClusterWidget(
+                clusterid=cluster.id,
+                pieces=pieces,
+                rotations=o.rotations,
+                client=o.client
+            )
+            if piece_items:
+                for pid in cluster.pieces:
+                    piece_items[pid].copy_to(cw)
+            o.addItem(cw)
+            o.cluster_map[cluster.id] = cw
+            cw.setClusterPosition(cluster.x, cluster.y, cluster.rotation)
         
     def _get_next_pieces(o):
         if o._pieces_to_get:
