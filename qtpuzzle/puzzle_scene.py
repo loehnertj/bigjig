@@ -79,7 +79,7 @@ class PuzzleScene(QGraphicsScene):
         o.addItem(o._rubberband)
 
     def _display_puzzle(o, sender, puzzle_data, cluster_data):
-        print('display puzzle')
+        L().debug('display new puzzle')
         o.grabbed_widgets = {}
         o.cluster_map = {}
         o.rotations = puzzle_data.rotations
@@ -107,7 +107,6 @@ class PuzzleScene(QGraphicsScene):
             o.client.get_pieces(pieces=p)
         
     def _set_piece_pixmaps(o, sender, pixmaps):
-        print('got pieces: %r'%list(pixmaps.keys()))
         for cw in o.cluster_map.values():
             cw.setPieceImages(pixmaps)
         o._get_next_pieces()
@@ -277,21 +276,17 @@ class PuzzleScene(QGraphicsScene):
     def onInputUp(o, iev):
         if iev.isDrag:
             if iev.key in KEYS['select']+KEYS['deselect']:
-                print('end of select/deselect')
                 frame = QRectF(o._drag_start, iev.lastScenePos)
                 items = o.items(frame, Qt.ContainsItemBoundingRect, Qt.AscendingOrder)
                 # deselect on Shift+Select or Deselect key.
                 select = True
                 if iev.key in KEYS['deselect'] or (iev.modifiers & Qt.ShiftModifier):
                     select=False
-                print( '..')
                 for item in items:
                     if not isinstance(item, ClusterWidget): continue
                     item.setSelected(select)
-                print('B')
                 o._drag_start = None
                 o._rubberband.hide()
-                print('C')
             if iev.key in KEYS['pan']:
                 o.parent().togglePan(False)
         else:
