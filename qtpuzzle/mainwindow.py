@@ -59,6 +59,9 @@ class MainWindow(QMainWindow):
         self.scene = PuzzleScene(self.ui.mainView, self.client)
         self.ui.mainView.setScene(self.scene)
         
+        for msg in self.client.unhandled_calls():
+            L().warning('qtpuzzle: no handler connected for API call "%s"'%msg)
+        
         settings = QSettings()
         path = settings.value("LastOpened", "")
         if path:
