@@ -75,6 +75,7 @@ class MainWindow(QMainWindow):
         client.connected.connect(self.on_player_connect)
         client.dropped.connect(self.do_autosave)
         client.joined.connect(self.do_autosave)
+        client.clusters.connect(self.do_autosave)
         client.solved.connect(self.on_solved)
         transport.start()
         return client
