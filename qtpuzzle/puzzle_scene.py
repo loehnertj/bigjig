@@ -221,32 +221,24 @@ class PuzzleScene(QGraphicsScene):
             o.cluster_map[clusterid].onClusterDropped()
     
     def onClustersJoined(o, sender, cluster, joined_clusters, position):
-        # FIXME
-        pass
-    
-    def checkjoin(o, widget):
-        # FIXME
-        jc = o.puzzle_board.joinable_clusters(widget.cluster)
-        if jc:
-            o.puzzle_board.join(clusters=jc, to_cluster=widget.cluster)
-            # The clusters in jc have been merged into to_cluster. move piece items accordingly.
-            for other_cluster in jc:
-                cw = o.cluster_map[other_cluster]
-                # reparent piece images
-                for item in cw.childItems():
-                    item.setParentItem(widget)
-                # delete item
-                if cw in o.grabbed_widgets:
-                    o.grabbed_widgets.remove(cw)
-                o.removeItem(cw)
-                del o.cluster_map[other_cluster]
-                # apparently Qt does not take it so well when the old cluster is GC'd
-                # at the wrong time. prevent by keeping around a ref.
-                # FIXME: mem leak...
-                o._old_clusters.add(cw)
-            # update position from puzzleboard
-            widget.updatePos()
-    
+        dst = o.cluster_map[cluster]
+        for clusterid in joined_clusters:
+            cw = o.cluster_map[clusterid]
+            # reparent piece images
+            for item in cw.childItems():
+                item.setParentItem(dst)
+            # delete item
+            if cw in o.grabbed_widgets:
+                o.grabbed_widgets.remove(cw)
+            o.removeItem(cw)
+            del o.cluster_map[cw.clusterid]
+            # apparently Qt does not take it so well when the old cluster is GC'd
+            # at the wrong time. prevent by keeping around a ref.
+            # FIXME: mem leak...
+            o._old_clusters.add(cw)
+        # update position from puzzleboard
+        dst.setClusterPosition(x=position.x, y=position.y, rotation=position.rotation)
+            
     # events ################################
     def mouseMoveEvent(o, ev):
         QGraphicsScene.mouseMoveEvent(o, ev)
