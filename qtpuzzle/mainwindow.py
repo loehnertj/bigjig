@@ -73,8 +73,8 @@ class MainWindow(QMainWindow):
         codec = JsonCodec()
         client = PuzzleClient(codec, transport, nickname)
         client.connected.connect(self.on_player_connect)
-        client.moved.connect(self.on_pb_changed)
-        client.joined.connect(self.on_pb_changed)
+        client.dropped.connect(self.do_autosave)
+        client.joined.connect(self.do_autosave)
         client.solved.connect(self.on_solved)
         transport.start()
         return client
@@ -128,7 +128,7 @@ class MainWindow(QMainWindow):
     def selection_clear(self):
         self.scene.clearSelection()
         
-    def on_pb_changed(self, sender, **kwargs):
+    def do_autosave(self, sender, **kwargs):
         if self.ui.actionAutosave.isChecked():
             L().debug('autosaving')
             self.client.save_puzzle()
