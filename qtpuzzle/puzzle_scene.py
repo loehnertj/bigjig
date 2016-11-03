@@ -80,8 +80,11 @@ class PuzzleScene(QGraphicsScene):
 
     def _display_puzzle(o, sender, puzzle_data, cluster_data):
         L().debug('display new puzzle')
+        items = list(o.cluster_map.items())
+        for key, cw in items:
+            del o.cluster_map[key]
+            o.removeItem(cw)
         o.grabbed_widgets = {}
-        o.cluster_map = {}
         o.rotations = puzzle_data.rotations
         pieces = {piece.id: piece for piece in puzzle_data.pieces}
         o._pieces_to_get = list(pieces.keys())
