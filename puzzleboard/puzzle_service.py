@@ -187,6 +187,8 @@ class PuzzleService(object):
             
             self.board.join(joinable_clusters, to_cluster=cluster)
             self.api.joined(None, cluster=clusterid, joined_clusters=jcids, position=cluster.position)
+        if len(self.board.clusters) == 1:
+            self.api.solved(None)
             
     def on_move(self, sender, cluster_positions):
         clusters = self._get_clusters([int(key) for key in cluster_positions.keys()])
