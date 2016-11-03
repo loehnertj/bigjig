@@ -67,8 +67,6 @@ class PuzzleScene(QGraphicsScene):
         o._move_rotation = 0
         # time of last position update (for rate limit)
         o._last_move_send_time = 0
-        # FIXME this should not be there -.-
-        o._old_clusters = set()
 
         # init selection
         o._drag_start = None
@@ -227,17 +225,13 @@ class PuzzleScene(QGraphicsScene):
         for clusterid in joined_clusters:
             cw = o.cluster_map[clusterid]
             # reparent piece images
-            for item in cw.childItems():
-                item.setParentItem(dst)
+            for item in cw.pieceItems():
+                item.copy_to(dst)
             # delete item
             if cw in o.grabbed_widgets:
-                o.grabbed_widgets.remove(cw)
-            o.removeItem(cw)
+                del o.grabbed_widgets[cw.clusterid]
             del o.cluster_map[cw.clusterid]
-            # apparently Qt does not take it so well when the old cluster is GC'd
-            # at the wrong time. prevent by keeping around a ref.
-            # FIXME: mem leak...
-            o._old_clusters.add(cw)
+            o.removeItem(cw)
         # update position from puzzleboard
         dst.setClusterPosition(x=position.x, y=position.y, rotation=position.rotation)
             

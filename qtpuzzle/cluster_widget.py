@@ -31,6 +31,15 @@ class PieceItem(QGraphicsPixmapItem):
         outline(img, illum_angle=-angle_deg-30)
         o.setPixmap(QPixmap.fromImage(img))
         
+    def copy_to(o, parent):
+        '''copies this item to the ClusterWidget parent.'''
+        p = PieceItem(parent, o.id, o.img.width(), o.img.height())
+        p.img = o.img.copy(o.img.rect())
+        p._got_image = True
+        p.setPos(o.pos())
+        p.updateRotation(parent.rotation())
+        return p
+        
 class ClusterWidget(QGraphicsWidget):
     def __init__(o, clusterid, pieces, rotations, client):
         super(ClusterWidget, o).__init__()
@@ -69,12 +78,16 @@ class ClusterWidget(QGraphicsWidget):
             
     def boundingRect(o):
         return o.childrenBoundingRect()
-            
     def paint(o, painter, option, widget):
+        
         QGraphicsWidget.paint(o, painter, option, widget)
         if o.isSelected():
             # TODO nicer selection marker
             painter.fillRect(o.boundingRect().adjusted(-5, -5, 5, 5), QColor("lightGray"))
+            
+    def pieceItems(o):
+        for item in o.childItems():
+            yield item
             
     def setClusterPosition(o, x, y, rotation):
         o.setPos(x, y)
