@@ -52,23 +52,48 @@ class MainWindow(QMainWindow):
 
         self._slicer = None
         
-        
-        self.client = self.initPuzzleClient('SirLancelot')
-        self.client.connect(name="SirLancelot")
-        
-        self.scene = PuzzleScene(self.ui.mainView, self.client)
-        self.ui.mainView.setScene(self.scene)
-        
-        for msg in self.client.unhandled_calls():
-            L().warning('qtpuzzle: no handler connected for API call "%s"'%msg)
+        # None, "local" or "tcp"
+        self.client_type = None
+        self.switchClient(nickname='', client_type=None)
         
         settings = QSettings()
         path = settings.value("LastOpened", "")
         if path:
+            # this switches the client_type to 'local'
             self.load_puzzle(path)
         self.ui.actionAutosave.setChecked(settings.value("Autosave", "true")=="true")
         
-    def initPuzzleClient(self, nickname):
+    def switchClient(self, nickname, client_type='local'):
+        self.deinitPuzzleClient()
+        self.client_type = client_type
+        if self.client_type is not None:
+            self.client = self.initPuzzleClient('SirLancelot', client_type)
+            self.client.connect(name="SirLancelot")
+            self.scene = PuzzleScene(self.ui.mainView, self.client)
+        else:
+            # set dummy scene
+            self.scene = QGraphicsScene()
+        self.ui.actionSave.setEnabled(client_type=='local')
+        self.ui.actionSave_as.setEnabled(client_type=='local')
+        self.ui.actionAutosave.setEnabled(client_type=='local')
+        self.ui.actionReset.setEnabled(client_type=='local')
+        self.ui.mainView.setScene(self.scene)
+        
+    def deinitPuzzleClient(self):
+        if self.client_type == 'local':
+            self.do_autosave('')
+            self.client.quit()
+            self.client.transport.stop()
+        elif self.client_type == 'tcp':
+            self.client.disconnect()
+            # FIXME: explicit stop necessary? server should tcp-disconnect client.
+            # QTcpTransport to be written, decide then...
+            self.client.transport.stop()
+        self.client = None
+        self.client_type = None
+        
+    def initPuzzleClient(self, nickname, client_type='local'):
+        # TODO: this changes depending on client type
         transport = QProcessTransport('{python} -m puzzleboard'.format(python=sys.executable))
         codec = JsonCodec()
         client = PuzzleClient(codec, transport, nickname)
@@ -86,13 +111,15 @@ class MainWindow(QMainWindow):
     def closeEvent(self, ev):
         self.ui.mainView.gl_widget.setParent(None)
         del self.ui.mainView.gl_widget
-        
-        self.client.quit()
+        self.deinitPuzzleClient()
         
     def showEvent(self, ev):
         self.ui.mainView.viewAll()
         
     def save(self):
+        if self.client_type != 'local':
+            L().warning('MainWindow.save: can only save on local client')
+            return
         self.client.save_puzzle()
         
     def open(self):
@@ -106,6 +133,8 @@ class MainWindow(QMainWindow):
         self._slicer.show()
 
     def load_puzzle(self, path):
+        if self.client_type != "local":
+            self.switchClient('NAME', client_type='local')
         if path.endswith("puzzle.json"):
             path = os.path.dirname(path)
         self.client.load_puzzle(path=path)
@@ -117,16 +146,23 @@ class MainWindow(QMainWindow):
         settings.setValue("Autosave", self.ui.actionAutosave.isChecked())
     
     def reset_puzzle(self):
+        if self.client_type != 'local':
+            L().warning('MainWindow.reset_puzzle: can only reset on local client')
+            return
         if QMessageBox.Ok != QMessageBox.warning(self, "Reset puzzle", "Really reset the puzzle?", QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Cancel):
             return
         self.client.restart_puzzle()
         self.ui.mainView.viewAll()
         
     def selection_rearrange(self):
+        if self.client_type is None:
+            return
         self.scene.selectionRearrange()
         self.ui.mainView.viewAll()
         
     def selection_clear(self):
+        if self.client_type is None:
+            return
         self.scene.clearSelection()
         
     def do_autosave(self, sender, **kwargs):
