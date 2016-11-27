@@ -45,7 +45,7 @@ class MainWindow(QMainWindow):
             actionNewPuzzle=self.new_puzzle,
             actionOpen=self.open,
         )
-        for key,func in mappings.items():
+        for key, func in mappings.items():
             getattr(self.ui, key).triggered.connect(func)
         
         self.ui.actionAutosave.toggled.connect(self.toggle_autosave)
