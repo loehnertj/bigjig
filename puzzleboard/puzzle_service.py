@@ -140,6 +140,8 @@ class PuzzleService(object):
         return self.grabbed_clusters_by_player[sender]
     
     def on_grab(self, sender, clusters):
+        if sender not in self.players:
+            return
         clusters = self._get_clusters(clusters)
         # remove all clusters that are grabbed by any player (including sender)
         all_grabbed_clusters = sum(self.grabbed_clusters_by_player.values(), [])
@@ -156,6 +158,8 @@ class PuzzleService(object):
         
         
     def on_drop(self, sender, clusters):
+        if sender not in self.players:
+            return
         clusters = self._get_clusters(clusters)
         grabbed_clusters = self._get_grabbed(sender)
         clusters = [cluster for cluster in clusters if cluster in grabbed_clusters]
@@ -193,6 +197,8 @@ class PuzzleService(object):
             self.api.solved(None)
             
     def on_move(self, sender, cluster_positions):
+        if sender not in self.players:
+            return
         clusters = self._get_clusters([int(key) for key in cluster_positions.keys()])
         grabbed_clusters = self._get_grabbed(sender)
         clusters = [cluster for cluster in clusters if cluster in grabbed_clusters]
@@ -205,6 +211,8 @@ class PuzzleService(object):
         self.api.moved(None, cluster_positions=new_positions)
         
     def on_rearrange(self, sender, clusters, x=None, y=None):
+        if sender not in self.players:
+            return
         clusters = self._get_clusters(clusters)
         grabbed_clusters = self._get_grabbed(sender)
         clusters = [cluster for cluster in clusters if cluster in grabbed_clusters]
