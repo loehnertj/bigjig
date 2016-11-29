@@ -22,6 +22,7 @@ class PuzzleAPI(RemoteAPI):
     def disconnect(self, sender):
         '''drops everything that is grabbed by the sender and
         tells the others that he disconnected.
+        If sender is connected over TCP, server closes connection afterwards.
         '''
         pass
         

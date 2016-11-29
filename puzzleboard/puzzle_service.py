@@ -8,9 +8,10 @@ from .puzzle_board import PuzzleBoard
 
 
 class PuzzleService(object):
-    def __init__(self, codec, transport, quit_handler):
+    def __init__(self, codec, transport, close_handler, quit_handler):
         self.transport = transport
         self.api = PuzzleAPI(codec=codec, transport=transport)
+        self.close_handler = close_handler
         self.quit_handler = quit_handler
         
         self.board = PuzzleBoard()
@@ -53,7 +54,8 @@ class PuzzleService(object):
         del self.players[sender]
         del self.grabbed_clusters_by_player[sender]
         self.api.disconnected(None, playerid=sender)
-        
+        # close connection
+        self.close_handler(sender)
         
     # ---- puzzle load/save/reset ----
     

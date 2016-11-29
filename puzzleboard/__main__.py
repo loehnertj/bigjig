@@ -7,19 +7,26 @@ L = lambda: logging.getLogger(__name__)
 
 from neatocom.terse_codec import TerseCodec
 from neatocom.stdio_transport import StdioTransport
+from neatocom.mux_transport import MuxTransport
+from neatocom.tcp_server_transport import TcpServerTransport
 
-from .puzzle_service import PuzzleService 
+from .puzzle_service import PuzzleService
 
 
 L().info('\n### New run of Puzzleboard ###')
 
-L().info('initializing StdioTransport')
-transport = StdioTransport()
+L().info('initializing Transport')
+transport = MuxTransport()
+transport += StdioTransport()
+# FIXME hardcoded port
+server = TcpServerTransport(port=8888)
+transport += server
 
 L().info('initializing PuzzleService')
 service = PuzzleService(
     codec=TerseCodec(),
     transport=transport,
+    close_handler=server.close,
     quit_handler=transport.stop
 )
 
