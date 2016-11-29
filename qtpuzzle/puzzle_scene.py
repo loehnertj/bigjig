@@ -204,11 +204,11 @@ class PuzzleScene(QGraphicsScene):
         items = o.selectedItems()
         clusters = [i.clusterid for i in items]
         # FIXME: get center of mass from clusters
-        x, y = (pos.x(), pos.y()) if pos else (None, None)
+        x, y = (pos.x(), pos.y()) if pos else (0., 0.)
         # fixme: order by position
         o.client.grab(clusters=clusters)
         # Clusters are not notified of being grabbed. The moved() message triggered by rearrange() will move them on-screen.
-        o.client.rearrange(clusters=clusters, x=pos.x(), y=pos.y())
+        o.client.rearrange(clusters=clusters, x=x, y=y)
         o.client.drop(clusters=clusters)
         o.updateSceneRect()
         
