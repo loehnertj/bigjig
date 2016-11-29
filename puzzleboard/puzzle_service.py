@@ -118,7 +118,7 @@ class PuzzleService(object):
                 continue
             path = os.path.join(self.board.imagefolder, piece.image)
             with open(path, "rb") as f:
-                pixmaps[piece.id] = f.read()
+                pixmaps[str(piece.id)] = f.read()
         self.api.piece_pixmaps(sender, pixmaps=pixmaps)
         
     

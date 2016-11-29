@@ -5,7 +5,7 @@ logging.basicConfig(
 )
 L = lambda: logging.getLogger(__name__)
 
-from neatocom.json_codec import JsonCodec
+from neatocom.terse_codec import TerseCodec
 from neatocom.stdio_transport import StdioTransport
 
 from .puzzle_service import PuzzleService 
@@ -18,7 +18,7 @@ transport = StdioTransport()
 
 L().info('initializing PuzzleService')
 service = PuzzleService(
-    codec=JsonCodec(),
+    codec=TerseCodec(),
     transport=transport,
     quit_handler=transport.stop
 )

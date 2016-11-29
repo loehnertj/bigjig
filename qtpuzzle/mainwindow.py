@@ -20,7 +20,7 @@ from .i18n import tr
 from .puzzle_scene import PuzzleScene
 from .puzzle_client import PuzzleClient
 from neatocom.qprocess_transport import QProcessTransport
-from neatocom.json_codec import JsonCodec
+from neatocom.terse_codec import TerseCodec
 
 from slicer.slicer_main import SlicerMain
 
@@ -94,8 +94,8 @@ class MainWindow(QMainWindow):
         
     def initPuzzleClient(self, nickname, client_type='local'):
         # TODO: this changes depending on client type
-        transport = QProcessTransport('{python} -m puzzleboard'.format(python=sys.executable))
-        codec = JsonCodec()
+        transport = QProcessTransport('{python} -u -m puzzleboard'.format(python=sys.executable))
+        codec = TerseCodec()
         client = PuzzleClient(codec, transport, nickname)
         client.connected.connect(self.on_player_connect)
         client.dropped.connect(self.do_autosave)
