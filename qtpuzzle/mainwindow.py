@@ -20,6 +20,7 @@ from .i18n import tr
 from .puzzle_scene import PuzzleScene
 from .puzzle_client import PuzzleClient
 from neatocom.qprocess_transport import QProcessTransport
+from neatocom.qtcp_transport import QTcpTransport
 from neatocom.terse_codec import TerseCodec
 
 from slicer.slicer_main import SlicerMain
@@ -80,6 +81,7 @@ class MainWindow(QMainWindow):
         self.ui.mainView.setScene(self.scene)
         
     def deinitPuzzleClient(self):
+        L().info('deinit puzzle client')
         if self.client_type == 'local':
             self.do_autosave('')
             self.client.quit()
@@ -93,8 +95,13 @@ class MainWindow(QMainWindow):
         self.client_type = None
         
     def initPuzzleClient(self, nickname, client_type='local'):
-        # TODO: this changes depending on client type
-        transport = QProcessTransport('{python} -u -m puzzleboard'.format(python=sys.executable))
+        L().info('reinit puzzle client as %s'%client_type)
+        if client_type=='local':
+            transport = QProcessTransport('{python} -u -m puzzleboard'.format(python=sys.executable))
+        elif client_type=='tcp':
+            transport = QTcpTransport('localhost', 8888)
+        else:
+            raise ValueError('Unsupported client_type %s!'%client_type)
         codec = TerseCodec()
         client = PuzzleClient(codec, transport, nickname)
         client.connected.connect(self.on_player_connect)
