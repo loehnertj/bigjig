@@ -20,5 +20,5 @@ class PuzzleClient(PuzzleAPI):
         if name == self.nickname:
             self.playerid = playerid
         
-    def _remove_player(self, sender, playerid, name):
+    def _remove_player(self, sender, playerid):
         del self.players[playerid]
