@@ -19,8 +19,8 @@ def all():
     pass
 
 @task(all, default=True)
-def puzzle():
-    run('python3 -m qtpuzzle', pty=True)
+def puzzle2():
+    run('./puzzle2', pty=True)
 
 @task(uic)
 def slicer():
