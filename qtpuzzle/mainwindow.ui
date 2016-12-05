@@ -33,7 +33,7 @@
      <height>31</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu_File">
+   <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>&amp;Puzzle</string>
     </property>
@@ -47,15 +47,23 @@
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
-   <widget class="QMenu" name="menu_Insert">
+   <widget class="QMenu" name="menuInsert">
     <property name="title">
      <string>Se&amp;lection</string>
     </property>
     <addaction name="actionSelRearrange"/>
     <addaction name="actionSelClear"/>
    </widget>
-   <addaction name="menu_File"/>
-   <addaction name="menu_Insert"/>
+   <widget class="QMenu" name="menuNetwork">
+    <property name="title">
+     <string>&amp;Network</string>
+    </property>
+    <addaction name="actionNickname"/>
+    <addaction name="separator"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuInsert"/>
+   <addaction name="menuNetwork"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dock_boxes">
@@ -171,6 +179,16 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionLocalhost">
+   <property name="text">
+    <string>localhost</string>
+   </property>
+  </action>
+  <action name="actionNickname">
+   <property name="text">
+    <string>Nickname</string>
    </property>
   </action>
  </widget>

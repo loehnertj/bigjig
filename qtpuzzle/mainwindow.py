@@ -10,7 +10,7 @@ L = lambda: logging.getLogger(__name__)
 # Import Qt modules
 from PyQt4 import QtCore,QtGui
 from PyQt4.QtCore import Qt, QSettings # , pyqtSignature
-from PyQt4.QtGui import QMainWindow, QFileDialog, QAction, QMessageBox, QGraphicsScene
+from PyQt4.QtGui import QMainWindow, QFileDialog, QAction, QMessageBox, QGraphicsScene, QInputDialog
 
 # Import the compiled UI module
 from .mainwindowUI import Ui_MainWindow
@@ -45,11 +45,13 @@ class MainWindow(QMainWindow):
             actionSelClear=self.selection_clear,
             actionNewPuzzle=self.new_puzzle,
             actionOpen=self.open,
+            actionNickname=self.change_nickname,
         )
         for key, func in mappings.items():
             getattr(self.ui, key).triggered.connect(func)
         
         self.ui.actionAutosave.toggled.connect(self.toggle_autosave)
+        self.ui.menuNetwork.aboutToShow.connect(self.refreshNetworkMenu)
 
         self._slicer = None
         
@@ -58,18 +60,19 @@ class MainWindow(QMainWindow):
         self.switchClient(nickname='', client_type=None)
         
         settings = QSettings()
+        self.nickname = settings.value("nickname", "Sir Lancelot")
         path = settings.value("LastOpened", "")
         if path:
             # this switches the client_type to 'local'
             self.load_puzzle(path)
         self.ui.actionAutosave.setChecked(settings.value("Autosave", "true")=="true")
         
-    def switchClient(self, nickname, client_type='local'):
+    def switchClient(self, nickname, client_type='local', address=''):
         self.deinitPuzzleClient()
         self.client_type = client_type
         if self.client_type is not None:
-            self.client = self.initPuzzleClient('SirLancelot', client_type)
-            self.client.connect(name="SirLancelot")
+            self.client = self.initPuzzleClient(self.nickname, client_type, address)
+            self.client.connect(name=self.nickname)
             self.scene = PuzzleScene(self.ui.mainView, self.client)
         else:
             # set dummy scene
@@ -94,12 +97,12 @@ class MainWindow(QMainWindow):
         self.client = None
         self.client_type = None
         
-    def initPuzzleClient(self, nickname, client_type='local'):
+    def initPuzzleClient(self, nickname, client_type='local', address=''):
         L().info('reinit puzzle client as %s'%client_type)
         if client_type=='local':
             transport = QProcessTransport('{python} -u -m puzzleboard'.format(python=sys.executable))
         elif client_type=='tcp':
-            transport = QTcpTransport('localhost', 8888)
+            transport = QTcpTransport(address, 8888)
         else:
             raise ValueError('Unsupported client_type %s!'%client_type)
         codec = TerseCodec()
@@ -111,6 +114,34 @@ class MainWindow(QMainWindow):
         client.solved.connect(self.on_solved)
         transport.start()
         return client
+    
+    def change_nickname(self):
+        nickname, ok = QInputDialog.getText(self, "Network Nickname", "What is your name?", text=self.nickname)
+        if ok and nickname != '':
+            settings = QSettings()
+            settings.setValue("nickname", nickname)
+            self.nickname = nickname
+    
+    def findNetworkServers(self):
+        return ['localhost',]
+    
+    def refreshNetworkMenu(self):
+        menu = self.ui.menuNetwork
+        try:
+            self.ui.actionNickname.setText("You are: " + self.nickname)
+        except TypeError:
+            self.nickname = "?"
+        for action in menu.actions():
+            if action.data() == 'dynamic':
+                menu.removeAction(action)
+            
+        
+        for server in self.findNetworkServers():
+            action = QAction(server, menu)
+            action.triggered.connect(lambda: self.switchClient('SirGalahad', client_type='tcp', address=server))
+            action.setData('dynamic')
+            menu.addAction(action)
+            
     
     def on_player_connect(self, sender, playerid, name):
         L().info('{} connected as {}'.format(playerid, name))
