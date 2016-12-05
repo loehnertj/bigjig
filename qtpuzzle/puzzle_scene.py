@@ -4,6 +4,7 @@
 import os
 import logging
 from time import time
+from random import shuffle
 
 from PyQt4.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
 from PyQt4.QtGui import QBrush, QColor, QPen, QPixmap
@@ -86,7 +87,11 @@ class PuzzleScene(QGraphicsScene):
         o.grabbed_widgets = {}
         o.rotations = puzzle_data.rotations
         pieces = {piece.id: piece for piece in puzzle_data.pieces}
+        # "Task list" for piece image retrieval.
+        # Shuffle so that the loading order does not reveal
+        # piece positions.
         o._pieces_to_get = list(pieces.keys())
+        shuffle(o._pieces_to_get)
         o._create_clusters(cluster_data, piece_defs=pieces)
         o.updateSceneRect()
         o.parent().viewAll()
