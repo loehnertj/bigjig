@@ -5,7 +5,7 @@ logging.basicConfig(
 )
 L = lambda: logging.getLogger(__name__)
 
-from neatocom.terse_codec import TerseCodec
+from neatocom.codecs import TerseCodec
 from neatocom.transports import StdioTransport, MuxTransport, TcpServerTransport
 
 from .puzzle_service import PuzzleService
