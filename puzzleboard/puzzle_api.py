@@ -1,4 +1,4 @@
-from neatocom.concepts import RemoteAPI, incoming, outgoing
+from neatocom.remote_api import RemoteAPI, incoming, outgoing
 
 class PuzzleAPI(RemoteAPI):
     @incoming
