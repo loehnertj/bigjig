@@ -19,8 +19,7 @@ from .i18n import tr
 
 from .puzzle_scene import PuzzleScene
 from .puzzle_client import PuzzleClient
-from neatocom.qprocess_transport import QProcessTransport
-from neatocom.qtcp_transport import QTcpTransport
+from neatocom.QtTransports import QProcessTransport, QTcpTransport
 from neatocom.codecs import TerseCodec
 
 from slicer.slicer_main import SlicerMain
