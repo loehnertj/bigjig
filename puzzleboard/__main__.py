@@ -7,6 +7,7 @@ L = lambda: logging.getLogger(__name__)
 
 from neatocom.codecs import TerseCodec
 from neatocom.transports import StdioTransport, MuxTransport, TcpServerTransport
+from neatocom.announcer_api import make_udp_announcer
 
 from .puzzle_service import PuzzleService
 
@@ -17,7 +18,10 @@ L().info('initializing Transport')
 transport = MuxTransport()
 transport += StdioTransport()
 # FIXME hardcoded port
-server = TcpServerTransport(port=8888)
+server = TcpServerTransport(
+    port=8888,
+    announcer=make_udp_announcer(8889, description='type:puzzleboard version:0.1')
+)
 transport += server
 
 L().info('initializing PuzzleService')
