@@ -266,8 +266,11 @@ class GoldbergEngine(object):
             settings=o.settings
         )
     
-    def out_of_bounds(o, plug):
-        return (not o._boundary_path.contains(plug.path))
+    def out_of_bounds(o, plug, offenders=None):
+        result = (not o._boundary_path.contains(plug.path))
+        if result and offenders is not None:
+            offenders.append(plug)
+        return result
 
     
     def add_relation(o, piece_id_1, piece_id_2):
