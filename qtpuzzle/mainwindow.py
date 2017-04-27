@@ -19,8 +19,10 @@ from .i18n import tr
 
 from .puzzle_scene import PuzzleScene
 from .puzzle_client import PuzzleClient
-from neatocom.QtTransports import QProcessTransport, QTcpTransport
+
+from neatocom.QtTransports import QProcessTransport, QTcpTransport, QUdpTransport
 from neatocom.codecs import TerseCodec
+from neatocom.announcer_api import AnnouncerAPI
 
 from slicer.slicer_main import SlicerMain
 
@@ -52,6 +54,7 @@ class MainWindow(QMainWindow):
         
         self.ui.actionAutosave.toggled.connect(self.toggle_autosave)
         self.ui.menuNetwork.aboutToShow.connect(self.refreshNetworkMenu)
+        self.ui.menuNetwork.aboutToHide.connect(self.stopNetworkMenu)
 
         self._slicer = None
         
@@ -127,6 +130,7 @@ class MainWindow(QMainWindow):
     
     def refreshNetworkMenu(self):
         menu = self.ui.menuNetwork
+        
         try:
             self.ui.actionNickname.setText("You are: " + self.nickname)
         except TypeError:
@@ -134,14 +138,26 @@ class MainWindow(QMainWindow):
         for action in menu.actions():
             if action.data() == 'dynamic':
                 menu.removeAction(action)
-            
+                
+        self._seeker = AnnouncerAPI(TerseCodec(), QUdpTransport(8889))
+        self._seeker.invert()
+        self._seeker.transport.start()
         
-        for server in self.findNetworkServers():
+        def on_advertise(sender, description):
+            L().info('got advertisement from %r'%sender)
+            server = sender
             action = QAction(server, menu)
-            action.triggered.connect(lambda: self.switchClient('SirGalahad', client_type='tcp', address=server))
+            action.triggered.connect(lambda: self.switchClient(self.nickname, client_type='tcp', address=server))
             action.setData('dynamic')
             menu.addAction(action)
             
+        self._seeker.advertise.connect(on_advertise)
+        L().info('broadcast seek message')
+        self._seeker.seek()
+            
+    def stopNetworkMenu(self):
+        self._seeker.transport.stop()
+        del self._seeker
     
     def on_player_connect(self, sender, playerid, name):
         L().info('{} connected as {}'.format(playerid, name))
@@ -172,7 +188,7 @@ class MainWindow(QMainWindow):
 
     def load_puzzle(self, path):
         if self.client_type != "local":
-            self.switchClient('NAME', client_type='local')
+            self.switchClient(self.nickname, client_type='local')
         if path.endswith("puzzle.json"):
             path = os.path.dirname(path)
         self.client.load_puzzle(path=path)
