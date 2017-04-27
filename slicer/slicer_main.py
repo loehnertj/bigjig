@@ -15,6 +15,7 @@ from .slicerUI import Ui_Slicer
 from .preview_file_dialog import PreviewFileDialog
 from . import grid_rect
 from . import grid_hex
+from . import grid_cairo
 
 class SlicerMain(QDialog):
     def __init__(o):
@@ -26,6 +27,7 @@ class SlicerMain(QDialog):
         o.grid_types = {
             'Rectangular grid': grid_rect,
             'Hexagonal grid': grid_hex,
+            'Cairo grid': grid_cairo,
         }
         
         for grid_type in o.grid_types.keys():
