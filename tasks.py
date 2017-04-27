@@ -8,6 +8,7 @@ def cfuncs():
 @task
 def uic():
     run('pyuic4 qtpuzzle/mainwindow.ui --from-imports  -o qtpuzzle/mainwindowUI.py')
+    run('pyuic4 qtpuzzle/shortcut_help.ui --from-imports  -o qtpuzzle/shortcutHelpUI.py')
     run('pyuic4 slicer/slicer.ui -o slicer/slicerUI.py')
 
 @task

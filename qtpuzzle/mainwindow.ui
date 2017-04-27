@@ -61,9 +61,16 @@
     <addaction name="actionNickname"/>
     <addaction name="separator"/>
    </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>?</string>
+    </property>
+    <addaction name="actionShortcutHelp"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuInsert"/>
    <addaction name="menuNetwork"/>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dock_boxes">
@@ -188,7 +195,12 @@
   </action>
   <action name="actionNickname">
    <property name="text">
-    <string>Nickname</string>
+    <string>&amp;Nickname</string>
+   </property>
+  </action>
+  <action name="actionShortcutHelp">
+   <property name="text">
+    <string>Shortcut Help</string>
    </property>
   </action>
  </widget>

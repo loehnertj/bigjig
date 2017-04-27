@@ -45,6 +45,7 @@ class MainWindow(QMainWindow):
             actionNewPuzzle=self.new_puzzle,
             actionOpen=self.open,
             actionNickname=self.change_nickname,
+            actionShortcutHelp=self.display_shortcut_help,
         )
         for key, func in mappings.items():
             getattr(self.ui, key).triggered.connect(func)
@@ -209,4 +210,11 @@ class MainWindow(QMainWindow):
         
     def on_solved(self, sender):
         QMessageBox.information(self, "Puzzle solved.", "You did it!", "Yeehaw!!!")
+        
+    def display_shortcut_help(self, sender):
+        from PyQt4.QtGui import QDialog
+        from .shortcutHelpUI import Ui_ShortcutHelp
+        d = QDialog(self)
+        Ui_ShortcutHelp().setupUi(d)
+        d.show()
         
