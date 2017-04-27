@@ -125,9 +125,6 @@ class MainWindow(QMainWindow):
             settings.setValue("nickname", nickname)
             self.nickname = nickname
     
-    def findNetworkServers(self):
-        return ['localhost',]
-    
     def refreshNetworkMenu(self):
         menu = self.ui.menuNetwork
         
@@ -143,6 +140,7 @@ class MainWindow(QMainWindow):
         self._seeker.invert()
         self._seeker.transport.start()
         
+        # FIXME: filter "self" - bad things happen when trying to connect there
         def on_advertise(sender, description):
             L().info('got advertisement from %r'%sender)
             server = sender
