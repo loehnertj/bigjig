@@ -1,8 +1,5 @@
+import sys
 import logging
-logging.basicConfig(
-    level="INFO",
-    filename="puzzleboard.log"
-)
 L = lambda: logging.getLogger(__name__)
 
 from neatocom.codecs import TerseCodec
@@ -11,6 +8,13 @@ from neatocom.announcer_api import make_udp_announcer
 
 from .puzzle_service import PuzzleService
 
+if '--console' in sys.argv:
+    logging.basicConfig(level='INFO')
+else:
+    logging.basicConfig(
+        level="INFO",
+        filename="puzzleboard.log"
+    )
 
 L().info('\n### New run of Puzzleboard ###')
 

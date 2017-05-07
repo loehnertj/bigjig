@@ -1,2 +1,2 @@
 #!/bin/sh
-/usr/bin/env python3 -m puzzleboard
+/usr/bin/env python3 -m puzzleboard --console
