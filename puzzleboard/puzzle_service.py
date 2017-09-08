@@ -8,12 +8,14 @@ from .puzzle_board import PuzzleBoard
 
 
 class PuzzleService(object):
-    def __init__(self, codec, transport, close_handler, quit_handler):
+    def __init__(self, codec, transport, announcer, close_handler, quit_handler):
         self.transport = transport
         self.api = PuzzleAPI(codec=codec, transport=transport)
+        self._announcer=announcer
         self.close_handler = close_handler
         self.quit_handler = quit_handler
         
+        self.servername = 'Unnamed server'
         self.board = PuzzleBoard()
         self.players = {}
         # player id -> list of grabbed clusters
@@ -38,6 +40,17 @@ class PuzzleService(object):
             return
         L().info("invoke quit")
         self.quit_handler()
+        
+    def on_servername(self, sender, name):
+        if sender!='stdio':
+            L().warning('servername command only allowed from stdio')
+            return
+        d = self._announcer.description.split(' ')
+        d = [part for part in d if not part.startswith('servername:')]
+        d.append('servername:%s'%name.replace(' ','_'))
+        d = ' '.join(d)
+        L().info('change announcer description to %r'%d)
+        self._announcer.description = d
         
     # ---- Player management ----
     

@@ -24,18 +24,24 @@ transport += StdioTransport()
 # FIXME hardcoded port
 server = TcpServerTransport(
     port=8888,
-    announcer=make_udp_announcer(8889, description='type:puzzleboard version:0.1')
+    announcer=make_udp_announcer(8889, description='type:puzzleboard version:0.1 servername:Unknown_Server')
 )
 transport += server
 
 L().info('initializing PuzzleService')
-service = PuzzleService(
-    codec=TerseCodec(),
-    transport=transport,
-    close_handler=server.close,
-    quit_handler=transport.stop
-)
+try:
+    service = PuzzleService(
+        codec=TerseCodec(),
+        transport=transport,
+        announcer=server.announcer,
+        close_handler=server.close,
+        quit_handler=transport.stop
+    )
 
-L().info('start running')
-transport.run()
+    L().info('start running')
+    transport.run()
+    
+except Exception as e:
+    L().critical('Fatal Exception occured', exc_info=True)
+    raise
 L().info('exiting')

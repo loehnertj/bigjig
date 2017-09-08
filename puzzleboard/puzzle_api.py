@@ -6,6 +6,11 @@ class PuzzleAPI(RemoteAPI):
         '''stop the server'''
         pass
     
+    @incoming
+    def servername(self, sender, name):
+        '''set server name'''
+        pass
+    
     # ---- player management ----
     
     @incoming
