@@ -102,6 +102,7 @@ class MainWindow(QMainWindow):
         
     def initPuzzleClient(self, nickname, client_type='local', address=''):
         L().info('reinit puzzle client as %s'%client_type)
+        self.own_servername = ''
         if client_type=='local':
             transport = QProcessTransport('{python} -u -m puzzleboard'.format(python=sys.executable))
         elif client_type=='tcp':
@@ -116,6 +117,9 @@ class MainWindow(QMainWindow):
         client.clusters.connect(self.do_autosave)
         client.solved.connect(self.on_solved)
         transport.start()
+        if client_type=='local':
+            self.own_servername = nickname+"'s server"
+            client.servername(name=self.own_servername)
         return client
     
     def change_nickname(self):
@@ -136,18 +140,28 @@ class MainWindow(QMainWindow):
             if action.data() == 'dynamic':
                 menu.removeAction(action)
                 
+        self._found_servers = [self.own_servername]
         self._seeker = AnnouncerAPI(TerseCodec(), QUdpTransport(8889))
         self._seeker.invert()
         self._seeker.transport.start()
         
-        # FIXME: filter "self" - bad things happen when trying to connect there
         def on_advertise(sender, description):
             L().info('got advertisement from %r'%sender)
-            server = sender
-            action = QAction(server, menu)
+            servername = server = sender
+            # seek for a servername within the description
+            dparts = description.split(' ')
+            for part in dparts:
+                if part.startswith('servername:'):
+                    _, _, servername = part.partition(':')
+                    servername = servername.replace('_', ' ')
+            if servername in self._found_servers:
+                L().info('Ignoring advertisement, already known: %s'%servername)
+                return
+            action = QAction(servername, menu)
             action.triggered.connect(lambda: self.switchClient(self.nickname, client_type='tcp', address=server))
             action.setData('dynamic')
             menu.addAction(action)
+            self._found_servers.append(servername)
             
         self._seeker.advertise.connect(on_advertise)
         L().info('broadcast seek message')
