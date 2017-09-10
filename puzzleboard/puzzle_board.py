@@ -160,6 +160,7 @@ class PuzzleBoard(object):
         
     def _rearrange(o, clusters, pos=None):
         clusters = [c for c in clusters if len(c.pieces) == 1]
+        shuffle(clusters)
         pieces = [c.pieces[0] for c in clusters]
         # calculate maximum piece diagonal (squared)
         maxdgsq = max((p.w*p.w + p.h*p.h for p in pieces))
