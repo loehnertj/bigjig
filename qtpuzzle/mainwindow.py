@@ -48,6 +48,7 @@ class MainWindow(QMainWindow):
             actionOpen=self.open,
             actionNickname=self.change_nickname,
             actionShortcutHelp=self.display_shortcut_help,
+            actionFullscreen=self.toggle_fullscreen,
         )
         for key, func in mappings.items():
             getattr(self.ui, key).triggered.connect(func)
@@ -76,7 +77,7 @@ class MainWindow(QMainWindow):
         if self.client_type is not None:
             self.client = self.initPuzzleClient(self.nickname, client_type, address)
             self.client.connect(name=self.nickname)
-            self.scene = PuzzleScene(self.ui.mainView, self.client)
+            self.scene = PuzzleScene(self.ui.mainView, self.client, self)
         else:
             # set dummy scene
             self.scene = QGraphicsScene()
@@ -210,6 +211,24 @@ class MainWindow(QMainWindow):
     def toggle_autosave(self):
         settings = QSettings()
         settings.setValue("Autosave", self.ui.actionAutosave.isChecked())
+        
+    def toggle_fullscreen(self, fs='auto'):
+        if fs=='auto' or fs=='toggle':
+            new_state = self.ui.actionFullscreen.isChecked()
+        if fs=='toggle':
+            new_state = not new_state
+        if fs=='on' or fs is True:
+            new_state=True
+        if fs=='off' or fs is False:
+            new_state=False
+        L().info('Toggle fullscreen <%s>'%new_state)
+        if new_state:
+            self.showFullScreen()
+            self.ui.menubar.setVisible(False)
+        else:
+            self.showNormal()
+            self.ui.menubar.setVisible(True)
+        self.ui.actionFullscreen.setChecked(new_state)
     
     def reset_puzzle(self):
         if self.client_type != 'local':

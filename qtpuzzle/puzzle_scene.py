@@ -32,6 +32,8 @@ KEYS = {
 
     # both
     'select': [Qt.RightButton, Qt.Key_S],
+    
+    'fullscreen': [Qt.Key_F, Qt.Key_Escape],
 }
 
 # in seconds
@@ -42,12 +44,13 @@ class PuzzleScene(QGraphicsScene):
     def grab_active(o):
         return bool(o.grabbed_widgets)
     
-    def __init__(o, parent, puzzle_client, *args):
+    def __init__(o, parent, puzzle_client, mainwindow, *args):
         QGraphicsScene.__init__(o, parent, *args)
         o._input_tracker = InputTracker(o, accepts=sum(KEYS.values(), []))
 
         o.setBackgroundBrush(QBrush(QColor("darkGray")))
         o.client = puzzle_client
+        o.mainwindow = mainwindow
         o.cluster_map = {}
         
         # connect my events
@@ -287,6 +290,10 @@ class PuzzleScene(QGraphicsScene):
                 )
         elif iev.key in KEYS['zoom']:
             o.parent().toggleZoom()
+            
+        elif iev.key in KEYS['fullscreen']:
+            L().info(iev.key)
+            o.mainwindow.toggle_fullscreen('toggle')
     
     def onInputMove(o, iev):
         if iev.isDrag:
