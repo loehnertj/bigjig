@@ -17,6 +17,7 @@ class MainView(QGraphicsView):
         self.setMouseTracking(True)
         self.pan_active = False
         self._prev_mouse_pos = None
+        self._last_zoom_level = 1.0
         
     def resizeEvent(self, ev):
         pass
@@ -28,12 +29,14 @@ class MainView(QGraphicsView):
         self._is_view_all = False
         
     def viewAll(self):
+        self._last_zoom_level = self.transform().m11()
         self.fitInView(self.scene().sceneRect(), Qt.KeepAspectRatio)
         self._is_view_all = True
         
     def zoomOnMouse(self):
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.resetTransform()
+        self.scale(self._last_zoom_level, self._last_zoom_level)
         self._is_view_all=False
         
     def isViewAll(self):
