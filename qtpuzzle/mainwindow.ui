@@ -19,8 +19,33 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
+    <property name="spacing">
+     <number>7</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
-     <widget class="MainView" name="mainView"/>
+     <widget class="MainView" name="mainView">
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <property name="lineWidth">
+       <number>0</number>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -78,23 +103,6 @@
    <addaction name="menu_View"/>
    <addaction name="menuNetwork"/>
    <addaction name="menu"/>
-  </widget>
-  <widget class="QDockWidget" name="dock_boxes">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="features">
-    <set>QDockWidget::AllDockWidgetFeatures</set>
-   </property>
-   <property name="windowTitle">
-    <string>&amp;Tags</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents_2">
-    <layout class="QVBoxLayout" name="verticalLayout"/>
-   </widget>
   </widget>
   <action name="action_Quit">
    <property name="icon">
