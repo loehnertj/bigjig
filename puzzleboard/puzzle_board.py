@@ -1,11 +1,13 @@
 import os
-import logging as L
+import logging
 import json
 
 from random import shuffle, randint
 from .piece import Piece
 from .cluster import Cluster
 from .link import Link
+
+L = logging.getLogger(__name__)
 
 SNAP_DISTANCE = 40
 
@@ -111,7 +113,7 @@ class PuzzleBoard(object):
         cluster.x = x
         cluster.y = y
         cluster.rotation = rotation
-        L.info('moved cluster %s to %r, %r * %r'%([p.id for p in cluster.pieces], x, y, rotation))
+        L.debug('moved cluster %s to %r, %r * %r'%([p.id for p in cluster.pieces], x, y, rotation))
         o.on_changed()
         
     def joinable_clusters(o, cluster):
