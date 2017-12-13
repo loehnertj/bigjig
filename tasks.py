@@ -15,7 +15,7 @@ def uic():
 def resources():
     run('pyrcc4 -py3 qtpuzzle/icons.qrc -o qtpuzzle/icons_rc.py')
 
-@task(uic, resources)
+@task(uic, resources, cfuncs)
 def all():
     pass
 
