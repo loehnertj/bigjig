@@ -9,7 +9,7 @@ from PyQt4.QtGui import QApplication
 from .mainwindow import MainWindow
 
 def main():
-    logging.basicConfig(level="DEBUG")
+    logging.basicConfig(level="INFO")
     logging.getLogger('neatocom').setLevel('INFO')
     # Again, this is boilerplate, it's going to be the same on
     # almost every app you write
