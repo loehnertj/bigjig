@@ -1,8 +1,24 @@
-Start mit:
-invoke testrun
+Jigsaw puzzle game.
+
+For the moment, this is just dumped here with all flaws that might or might not be there. Feel free to open issues / PR's.
 
 
-Controls:
+# Installation:
+
+Python 3 ONLY. No it won't work with python2. Move on.
+
+You need python3-pyqt4, python3-pyqt4.qtopengl, python3-invoke, gcc.
+
+gcc is required to build qtpuzzle.render_outline module.
+
+Use `inv all` to build. Which means, build the C module and generate qt-ui files.
+
+Start with: `./puzzle2`
+
+
+
+# Controls
+
  * Mausrad zoomt
  * Q: Zoom umschalten zwischen Alles sichtbar und 1:1
  * LMT / Leertaste ziehen = Ansicht verschieben
@@ -15,7 +31,8 @@ Controls:
  * W / Shift+RMT ziehen: im Rahmen abwählen
  * E: gewählte Teile im Raster anordnen und um Cursor zentrieren
  
-Empfehlungen:
+# Empfehlungen
+
 - sortieren (am Anfang): Teile nacheinander mit S wählen, dann mit E an einen freien Platz beamen
 - Gruppen bilden (mitte): passende Teile mit S wählen, dann mit E in die Nähe der Anbaustelle beamen
 - einzelne fehlende Teile platzieren (zum Ende hin):
