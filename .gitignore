@@ -5,3 +5,4 @@
 **/*UI.py
 /slicer/goldberg
 *.log
+**/*.pyc
