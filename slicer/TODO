@@ -20,10 +20,6 @@ Explanation of "domains" grid: Divide the image area into a small number (10?) o
  * figure out where i18n strings go
 
 
-= Docs =
+ * move check_collisions() in goldberg_engine
 
-in docbook format (usage instructions from README file)
-
-
-= Prepare i18n =
 
