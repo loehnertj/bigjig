@@ -16,6 +16,7 @@ from .preview_file_dialog import PreviewFileDialog
 from . import grid_rect
 from . import grid_hex
 from . import grid_cairo
+from . import grid_rotrex
 
 class SlicerMain(QDialog):
     def __init__(o):
@@ -24,14 +25,15 @@ class SlicerMain(QDialog):
         o.ui.setupUi(o)
         o.ui.btnOpenImageFile.clicked.connect(o.pick_source_image);
         o.ui.btnSaveTo.clicked.connect(o.pick_dst)
-        o.grid_types = {
-            'Rectangular grid': grid_rect,
-            'Hexagonal grid': grid_hex,
-            'Cairo grid': grid_cairo,
-        }
+        o.grid_types = [
+            ('Rectangular grid', grid_rect),
+            ('Hexagonal grid', grid_hex),
+            ('Cairo grid', grid_cairo),
+            ('Rhombitrihexagonal', grid_rotrex),
+        ]
         
-        for grid_type in o.grid_types.keys():
-            o.ui.cboGridType.addItem(grid_type)
+        for name, grid_type in o.grid_types:
+            o.ui.cboGridType.addItem(name)
         o.ui.cboGridType.setCurrentIndex(0)
         o.onFinish = None
         
@@ -47,7 +49,8 @@ class SlicerMain(QDialog):
             for pc in [20, 50, 100, 200, 500]:
                 if getattr(o.ui, "pc_%d"%pc).isChecked():
                     piece_count = pc
-        grid_generator = o.grid_types[o.ui.cboGridType.currentText()]
+        gt = dict(o.grid_types)
+        grid_generator = gt[o.ui.cboGridType.currentText()]
         dst_path = o.ui.txtSaveTo.text()
         
         o.ui.buttonBox.setEnabled(False)
