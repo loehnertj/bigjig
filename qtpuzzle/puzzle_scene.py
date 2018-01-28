@@ -301,7 +301,7 @@ class PuzzleScene(QGraphicsScene):
                 if not o.grab_active:
                     # continuously update drag
                     o._drag_start = iev.startScenePos
-                    o._rubberband.setRect(QRectF(o._drag_start, iev.lastScenePos))
+                    o._rubberband.setRect(QRectF(o._drag_start, iev.lastScenePos).normalized())
                     o._rubberband.show()
             if iev.key in KEYS['pan']:
                 o.parent().togglePan(True)
@@ -309,7 +309,7 @@ class PuzzleScene(QGraphicsScene):
     def onInputUp(o, iev):
         if iev.isDrag:
             if iev.key in KEYS['select']+KEYS['deselect']:
-                frame = QRectF(o._drag_start, iev.lastScenePos)
+                frame = QRectF(o._drag_start, iev.lastScenePos).normalized()
                 items = o.items(frame, Qt.ContainsItemBoundingRect, Qt.AscendingOrder)
                 # deselect on Shift+Select or Deselect key.
                 select = True
