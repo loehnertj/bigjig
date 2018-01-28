@@ -1,7 +1,7 @@
 import logging as L
 
 from PyQt4.QtCore import Qt, QPoint
-from PyQt4.QtGui import QGraphicsView
+from PyQt4.QtGui import QGraphicsView, QPainter
 from PyQt4.QtOpenGL import QGLWidget
 
 from .input_tracker import InputTracker
@@ -13,6 +13,7 @@ class MainView(QGraphicsView):
         # geht nich -- Fehler & weisses Fenster -- Bug in Ubuntu
         self.gl_widget = QGLWidget()
         self.setViewport(self.gl_widget)
+        #self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.HighQualityAntialiasing)
         self._is_view_all = False
         self.setMouseTracking(True)
         self.pan_active = False

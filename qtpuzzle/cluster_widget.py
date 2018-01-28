@@ -15,10 +15,11 @@ class PieceItem(QGraphicsPixmapItem):
         o.id = pieceid
         o.img = None
         o._got_image = False
-        # create dummy pixmap, plain white for now
+        # create dummy pixmap, transparent
         pxm = QPixmap(w, h)
-        pxm.fill()
+        pxm.fill(QColor(0,0,0,0))
         o.setPixmap(pxm)
+        o.setTransformationMode(Qt.SmoothTransformation)
         
     def setPieceImage(o, rawdata):
         o.img = QImage.fromData(rawdata)
