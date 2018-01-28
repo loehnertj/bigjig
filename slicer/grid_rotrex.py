@@ -133,12 +133,12 @@ def generate_grid(engine, piece_count, image_width, image_height):
     flip = e.settings.alternate_flip
     for x, y, cell, c_left, c_above, odd_cell in itercells(cells):
         # determine border direction
-        cell.horiz.flipped = (odd_cell == flip)
-        cell.vert.flipped = (odd_cell == flip)
-        cell.tl.flipped = (odd_cell != flip)
-        cell.tr.flipped = (odd_cell != flip)
-        cell.bl.flipped = (odd_cell == flip)
-        cell.br.flipped = (odd_cell == flip)
+        cell.horiz.flipped |= (odd_cell == flip)
+        cell.vert.flipped |= (odd_cell == flip)
+        cell.tl.flipped |= (odd_cell != flip)
+        cell.tr.flipped |= (odd_cell != flip)
+        cell.bl.flipped |= (odd_cell == flip)
+        cell.br.flipped |= (odd_cell == flip)
         
         # set border vectors
         cell.horiz.unit_x = unit(
