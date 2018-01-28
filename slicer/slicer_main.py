@@ -4,7 +4,7 @@ import logging as L
 # Import Qt modules
 from PyQt4 import QtCore,QtGui
 from PyQt4.QtCore import Qt, QPoint, QRect # , pyqtSignature
-from PyQt4.QtGui import QDialog, QImage, QPainter, QFileDialog
+from PyQt4.QtGui import QDialog, QImage, QPainter, QFileDialog, QColor, QPixmap
 
 from puzzleboard.puzzle_board import PuzzleBoard
 from puzzleboard.piece import Piece
@@ -36,6 +36,40 @@ class SlicerMain(QDialog):
             o.ui.cboGridType.addItem(name)
         o.ui.cboGridType.setCurrentIndex(0)
         o.onFinish = None
+        o.settings = GBEngineSettings()
+        o.ui.cboGridType.currentIndexChanged.connect(lambda *args: o.generate_preview())
+        o.ui.flipSlider.sliderMoved.connect(o.onFlipSlider)
+        o.ui.curvinessSlider.sliderMoved.connect(o.onCurvinessSlider)
+        o.ui.plugSizeSlider.sliderMoved.connect(o.onPlugSizeSlider)
+        o.ui.curvinessVarSlider.sliderMoved.connect(o.onCurvinessVarSlider)
+        o.ui.plugPosVarSlider.sliderMoved.connect(o.onPlugPosVarSlider)
+        o.ui.plugShapeVarSlider.sliderMoved.connect(o.onPlugShapeVarSlider)
+        o.generate_preview()
+        
+    def onFlipSlider(o, value):
+        o.settings.flip_threshold = .01*value if value<50 else 1-.01*value
+        o.settings.alternate_flip = (value>=50)
+        o.generate_preview()
+    
+    def onCurvinessSlider(o, value):
+        o.settings.edge_curviness = .01*value
+        o.generate_preview()
+        
+    def onPlugSizeSlider(o, value):
+        o.settings.plug_size = 1. + .01*value
+        o.generate_preview()
+        
+    def onCurvinessVarSlider(o, value):
+        o.settings.sigma_curviness = .01*value
+        o.generate_preview()
+        
+    def onPlugPosVarSlider(o, value):
+        o.settings.sigma_basepos = .01*value
+        o.generate_preview()
+        
+    def onPlugShapeVarSlider(o, value):
+        o.settings.sigma_plugs = .01*value
+        o.generate_preview()
         
     def accept(o):
         image_path = o.ui.txtImageFile.text()
@@ -49,16 +83,17 @@ class SlicerMain(QDialog):
             for pc in [20, 50, 100, 200, 500]:
                 if getattr(o.ui, "pc_%d"%pc).isChecked():
                     piece_count = pc
-        gt = dict(o.grid_types)
-        grid_generator = gt[o.ui.cboGridType.currentText()]
         dst_path = o.ui.txtSaveTo.text()
-        
         o.ui.buttonBox.setEnabled(False)
-        o.run(image_path, dst_path, piece_count, grid_generator)
+        o.run(image_path, dst_path, piece_count)
         o.ui.buttonBox.setEnabled(True)
         o.close()
         
-    def run(o, image_path, dst_path, piece_count, grid_generator):
+    def _cur_grid_generator(o):
+        gt = dict(o.grid_types)
+        return gt[o.ui.cboGridType.currentText()]
+        
+    def run(o, image_path, dst_path, piece_count):
         L.debug('run')
         if not image_path: return
         if not dst_path: return
@@ -76,6 +111,8 @@ class SlicerMain(QDialog):
             L.info('dst_path exists, cancel')
         os.makedirs(os.path.join(dst_path, 'pieces'))
         
+        grid_generator = o._cur_grid_generator()
+        
         puzzlename = os.path.splitext(os.path.basename(image_path))[0]
         o.board = PuzzleBoard(
             name=puzzlename,
@@ -83,8 +120,7 @@ class SlicerMain(QDialog):
         )
         o.board.basefolder=dst_path
         o.board.imagefolder=os.path.join(dst_path, 'pieces')
-        settings = GBEngineSettings()
-        engine = GoldbergEngine(o.add_piece_func, o.add_relation_func, settings)
+        engine = GoldbergEngine(o.add_piece_func, o.add_relation_func, o.settings, outline_only=True)
         engine(grid_generator.generate_grid, piece_count, o.source_image.width(), o.source_image.height())
         o.board.reset_puzzle()
         o.board.save_puzzle()
@@ -106,6 +142,20 @@ class SlicerMain(QDialog):
         path = QFileDialog.getSaveFileName(o, "Choose folder", "", "Directory (*)")
         if path:
             o.ui.txtSaveTo.setText(path)
+            
+    def generate_preview(o):
+        size = o.ui.previewImage.size()
+        img = QImage(size, QImage.Format_ARGB32)
+        img.fill(QColor(224,224,224,255))
+        painter = QPainter(img)
+        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+        def preview_add_piece_func(piece_id, mask_image, offset):
+            painter.drawImage(offset, mask_image)
+        engine = GoldbergEngine(preview_add_piece_func, lambda id1,id2: None, o.settings)
+        engine(o._cur_grid_generator().generate_grid, 30, size.width(), size.height())
+        painter.end()
+        
+        o.ui.previewImage.setPixmap(QPixmap(img))
     
     def add_piece_func(o, piece_id, mask_image, offset):
         # o.source_image required (QImage)
