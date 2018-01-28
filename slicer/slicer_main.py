@@ -18,6 +18,18 @@ from . import grid_hex
 from . import grid_cairo
 from . import grid_rotrex
 
+# TODO:
+# add_piece_func: find main colors of each piece
+# algorithm idea:
+# - convert image to HSL
+# - make histogram in HSx space (Nh x Ns x Nl bins)
+# - sort all nontransparent pixels into the bins
+#    in parallel, compute centroid in each bin
+# - use only bins with > 10?% of total (visible) pixel piece_count
+# - repeat:
+#   - find the two closest centroids
+#   - if they are < 1? bin distances from each other, merge them.
+
 class SlicerMain(QDialog):
     def __init__(o):
         QDialog.__init__(o)
