@@ -244,10 +244,11 @@ class GBClassicPlugParams(object):
 
 
 class GoldbergEngine(object):
-    def __init__(o, add_piece_func, add_relation_func, settings=None):
+    def __init__(o, add_piece_func, add_relation_func, settings=None, outline_only=False):
         o.add_piece_func = add_piece_func
         o.add_relation_func = add_relation_func
         o.settings = settings or GBEngineSettings()
+        o.outline_only = outline_only
         
     def __call__(o, gridfunc, piece_count, image_width, image_height):
         p = QPainterPath(QPointF(0.0, 0.0))
@@ -293,7 +294,8 @@ class GoldbergEngine(object):
         # 1.0 still leaves the slightest trace of a glitch. but making the stroke thicker makes the plugs appear non-matching even when they belong together.
         # 2016-06-18: changed to 0.5 -- bevel looks better
         painter.setPen(QPen(Qt.black, 0.5))
-        painter.setBrush(Qt.black)
+        if not o.outline_only:
+            painter.setBrush(Qt.NoBrush)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.drawPath(path)
         painter.end()
