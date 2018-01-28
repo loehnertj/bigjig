@@ -4,7 +4,7 @@ import os
 from math import sin, cos, pi
 
 from PyQt4.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
-from PyQt4.QtGui import QImage, QPixmap, QColor, QStaticText, QStyle
+from PyQt4.QtGui import QImage, QPixmap, QColor, QStaticText, QStyle, QBrush
 from PyQt4.QtGui import QGraphicsItem, QGraphicsWidget, QGraphicsPixmapItem
 
 from .render_outline import outline
@@ -79,17 +79,26 @@ class ClusterWidget(QGraphicsWidget):
             
     def boundingRect(o):
         return o.childrenBoundingRect()
+    
     def paint(o, painter, option, widget):
         QGraphicsWidget.paint(o, painter, option, widget)
         if o.isSelected():
             # TODO nicer selection marker
-            painter.fillRect(o.boundingRect().adjusted(-5, -5, 5, 5), QColor("lightGray"))
+            o.setMarking(painter, QColor(192,192,192,128))
         if o._grabbed_locally:
             # TODO indicate by even brighter glow
-            painter.fillRect(o.boundingRect().adjusted(-5, -5, 5, 5), QColor("white"))
+            o.setMarking(painter, QColor(255,255,255,128))
         elif o._grabbed_by:
-            pass # TODO indicate e.g. grey-out
-            painter.fillRect(o.boundingRect().adjusted(-5, -5, 5, 5), QColor("red"))
+            # TODO indicate e.g. grey-out
+            o.setMarking(painter, Qt.red)
+    
+    def setMarking(o, painter, color):
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QBrush(color))
+        rect = o.boundingRect()
+        c = rect.center()
+        radius = (rect.width()**2 + rect.height()**2)**0.5 * 0.5
+        painter.drawEllipse(c, radius, radius)
             
     def pieceItems(o):
         for item in o.childItems():
