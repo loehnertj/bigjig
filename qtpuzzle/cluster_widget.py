@@ -80,11 +80,16 @@ class ClusterWidget(QGraphicsWidget):
     def boundingRect(o):
         return o.childrenBoundingRect()
     def paint(o, painter, option, widget):
-        
         QGraphicsWidget.paint(o, painter, option, widget)
         if o.isSelected():
             # TODO nicer selection marker
             painter.fillRect(o.boundingRect().adjusted(-5, -5, 5, 5), QColor("lightGray"))
+        if o._grabbed_locally:
+            # TODO indicate by even brighter glow
+            painter.fillRect(o.boundingRect().adjusted(-5, -5, 5, 5), QColor("white"))
+        elif o._grabbed_by:
+            pass # TODO indicate e.g. grey-out
+            painter.fillRect(o.boundingRect().adjusted(-5, -5, 5, 5), QColor("red"))
             
     def pieceItems(o):
         for item in o.childItems():
@@ -114,6 +119,7 @@ class ClusterWidget(QGraphicsWidget):
                 o._last_server_rotation = o.clusterRotation()
                 o._grab_local_ofs = o.pos() - mousePos
                 o._grabbed_locally = True
+                o.update()
             # piece is now grabbed locally
             return True
         # somebody else is holding the piece, refuse local grab
@@ -130,8 +136,8 @@ class ClusterWidget(QGraphicsWidget):
                 on_loss(o)
                 o._grabbed_locally=False
                 pos = o._last_server_pos
+                # this will trigger a repaint
                 o.setClusterPosition(pos.x(), pos.y(), o._last_server_rotation)
-            # TODO: mark the clusters as foreign-grabbed on the screen
     
     def onClusterMoved(o, x, y, rotation):
         '''Move the piece to the given position, but only if it is not locally grabbed.
@@ -146,6 +152,7 @@ class ClusterWidget(QGraphicsWidget):
         '''reset all grab state'''
         o._grabbed_by = None
         o._grabbed_locally = False
+        o.update()
     
     def repositionGrabbedPiece(o, scene_pos, rotate):
         '''position and rotate the piece if grab is valid.
