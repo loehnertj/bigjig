@@ -2,7 +2,6 @@
 /puzzles/**/*
 **/*.so
 **/*.kate-swp
-**/*UI.py
 /slicer/goldberg
 *.log
 **/*.pyc
