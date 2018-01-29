@@ -9,6 +9,8 @@ from PyQt4.QtGui import QGraphicsItem, QGraphicsWidget, QGraphicsPixmapItem
 
 from .render_outline import outline
 
+_zvalue = 0.0
+
 class PieceItem(QGraphicsPixmapItem):
     def __init__(o, parent, pieceid, w, h):
         QGraphicsPixmapItem.__init__(o, parent=parent)
@@ -122,12 +124,15 @@ class ClusterWidget(QGraphicsWidget):
         '''Check if the piece can be grabbed, and if yes do it.
         Returns True if piece was grabbed, False if currently blocked.
         '''
+        global _zvalue
         if o._grabbed_by is None or o._grabbed_by == client.playerid:
             if not o._grabbed_locally:
                 o._last_server_pos = o.pos()
                 o._last_server_rotation = o.clusterRotation()
                 o._grab_local_ofs = o.pos() - mousePos
                 o._grabbed_locally = True
+                _zvalue += 1e-4
+                o.setZValue(_zvalue)
                 o.update()
             # piece is now grabbed locally
             return True
@@ -138,9 +143,12 @@ class ClusterWidget(QGraphicsWidget):
         '''If playerid is myself, just note the grab. (Local grab not required)
         If playerid is somebody else, call on_loss if l-grabbed, and reset onscreen position.
         '''
+        global _zvalue
         if playerid == o.client.playerid:
             o._grabbed_by = playerid
         else:
+            _zvalue += 1e-4
+            o.setZValue(_zvalue)
             if o._grabbed_locally:
                 on_loss(o)
                 o._grabbed_locally=False
