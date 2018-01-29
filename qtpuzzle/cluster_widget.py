@@ -4,7 +4,7 @@ import os
 from math import sin, cos, pi
 
 from PyQt4.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
-from PyQt4.QtGui import QImage, QPixmap, QColor, QStaticText, QStyle, QBrush
+from PyQt4.QtGui import QImage, QPixmap, QColor, QStaticText, QStyle, QPen
 from PyQt4.QtGui import QGraphicsItem, QGraphicsWidget, QGraphicsPixmapItem
 
 from .render_outline import outline
@@ -84,17 +84,17 @@ class ClusterWidget(QGraphicsWidget):
         QGraphicsWidget.paint(o, painter, option, widget)
         if o.isSelected():
             # TODO nicer selection marker
-            o.setMarking(painter, QColor(192,192,192,128))
+            o.setMarking(painter, QColor(220,220,220,128))
         if o._grabbed_locally:
             # TODO indicate by even brighter glow
-            o.setMarking(painter, QColor(255,255,255,128))
+            o.setMarking(painter, QColor(255,255,255,192))
         elif o._grabbed_by:
             # TODO indicate e.g. grey-out
             o.setMarking(painter, Qt.red)
     
     def setMarking(o, painter, color):
-        painter.setPen(Qt.NoPen)
-        painter.setBrush(QBrush(color))
+        painter.setPen(QPen(color, 3))
+        painter.setBrush(Qt.NoBrush)
         rect = o.boundingRect()
         c = rect.center()
         radius = (rect.width()**2 + rect.height()**2)**0.5 * 0.5
