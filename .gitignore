@@ -7,3 +7,4 @@
 **/*.pyc
 /*.egg-info
 /gfx/Keybindings.png
+build/**
