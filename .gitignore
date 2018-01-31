@@ -5,3 +5,4 @@
 /slicer/goldberg
 *.log
 **/*.pyc
+/*.egg-info
