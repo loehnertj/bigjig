@@ -1,19 +1,11 @@
 [Desktop Entry]
-Comment[de_DE]=
-Comment=
-Exec=/usr/bin/python3 -m qtpuzzle
-GenericName[de_DE]=
-GenericName=
-Icon=/home/jo/proggis/puzzle2/puzzle2.png
-MimeType=
-Name[de_DE]=Puzzle
-Name=Puzzle
-Path=/home/jo/proggis/puzzle2
-StartupNotify=true
+Exec=bigjig
+GenericName[de_DE]=Puzzle
+GenericName=Jigsaw Puzzle
+Icon=bigjig
+Name[de_DE]=BigJig
+Name=BigJig
 Terminal=false
 TerminalOptions=
 Type=Application
-X-DBUS-ServiceName=
-X-DBUS-StartupType=
-X-KDE-SubstituteUID=false
-X-KDE-Username=
+Categories=Game;LogicGame
