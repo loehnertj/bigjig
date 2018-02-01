@@ -353,12 +353,29 @@ EXPORT void outline(LONG img[], int width, int height, RenderSettings render_set
     free(backlog);
 }
 
-static PyObject* do_nothing(PyObject* self, PyObject* args) {
+static PyObject* _fill(PyObject* self, PyObject* args) {
+    LONG value;
+    Py_buffer array_buf;
+    if (!PyArg_ParseTuple(args, "ky*", &value, &array_buf)) {
+        return NULL;
+    }
+    if (array_buf.readonly) {
+        PyErr_SetString(
+            PyExc_ValueError,
+            "array is readonly"
+        );
+        return NULL;
+    }
+    
+    // Let's live dangerous and not check that the array elem type is bytes.
+    fill(value, array_buf.buf, array_buf.len/4);
+    
+    Py_INCREF(Py_None);
     return Py_None;
 }
 
 static PyMethodDef render_outline_methods[] = {
-    {"do_nothing", do_nothing, METH_VARARGS, "Do nothing"},
+    {"fill", _fill, METH_VARARGS, "fill(value, bytes_obj): fill LONG array with given value"},
     {NULL, NULL, 0, NULL}
 };
 
