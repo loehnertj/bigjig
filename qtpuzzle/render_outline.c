@@ -375,8 +375,26 @@ static PyObject* _fill(PyObject* self, PyObject* args) {
     return Py_None;
 }
 
+static PyObject* _outline(PyObject* self, PyObject* args) {
+    uint64_t imgptr;
+    int width;
+    int height;
+    Py_buffer settings_buf;
+    if (!PyArg_ParseTuple(args, "Kiiy*", &imgptr, &width, &height, &settings_buf)) {
+        return NULL;
+    }
+    
+    // Let's live dangerous and not check that the array elem type is bytes.
+    outline((LONG*)imgptr, width, height, *((RenderSettings*)(settings_buf.buf)));
+    
+    PyBuffer_Release(&settings_buf);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyMethodDef render_outline_methods[] = {
     {"fill", _fill, METH_VARARGS, "fill(value, bytes_obj): fill LONG array with given value"},
+    {"outline", _outline, METH_VARARGS, "outline(long* img, int width, int height, RenderSettings s)"},
     {NULL, NULL, 0, NULL}
 };
 
