@@ -85,14 +85,12 @@ class ClusterWidget(QGraphicsWidget):
     def paint(o, painter, option, widget):
         QGraphicsWidget.paint(o, painter, option, widget)
         if o.isSelected():
-            # TODO nicer selection marker
             o.setMarking(painter, QColor(220,220,220,128))
         if o._grabbed_locally:
-            # TODO indicate by even brighter glow
             o.setMarking(painter, QColor(255,255,255,192))
         elif o._grabbed_by:
-            # TODO indicate e.g. grey-out
-            o.setMarking(painter, Qt.red)
+            # TODO calculate individual color for each playerid
+            o.setMarking(painter, QColor(255,0,0,128))
     
     def setMarking(o, painter, color):
         painter.setPen(QPen(color, 3))
@@ -144,9 +142,8 @@ class ClusterWidget(QGraphicsWidget):
         If playerid is somebody else, call on_loss if l-grabbed, and reset onscreen position.
         '''
         global _zvalue
-        if playerid == o.client.playerid:
-            o._grabbed_by = playerid
-        else:
+        o._grabbed_by = playerid
+        if playerid != o.client.playerid:
             _zvalue += 1e-4
             o.setZValue(_zvalue)
             if o._grabbed_locally:
@@ -155,6 +152,8 @@ class ClusterWidget(QGraphicsWidget):
                 pos = o._last_server_pos
                 # this will trigger a repaint
                 o.setClusterPosition(pos.x(), pos.y(), o._last_server_rotation)
+            else:
+                o.update()
     
     def onClusterMoved(o, x, y, rotation):
         '''Move the piece to the given position, but only if it is not locally grabbed.
