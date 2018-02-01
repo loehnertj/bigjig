@@ -370,6 +370,7 @@ static PyObject* _fill(PyObject* self, PyObject* args) {
     // Let's live dangerous and not check that the array elem type is bytes.
     fill(value, array_buf.buf, array_buf.len/4);
     
+    PyBuffer_Release(&array_buf);
     Py_INCREF(Py_None);
     return Py_None;
 }
