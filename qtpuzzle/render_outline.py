@@ -1,19 +1,14 @@
 import os, sys
 import struct
 import math
-from ctypes import cdll, c_ulonglong, Structure, c_int, c_float
+from ctypes import c_ulonglong, Structure, c_int, c_float
 
 __all__ = ['outline']
 
-
-base = os.path.dirname(__file__)
-sofile = os.path.join(base, '_render_outline.so')
 try:
-    cfuncs = cdll.LoadLibrary(sofile)
-except OSError:
-    print('could not import %s'%sofile)
-    cfuncs = None
-
+    from . import _render_outline
+except ImportError:
+    _render_outline = None
 
 class _RenderSettings(Structure):
     _fields_ = [
@@ -24,8 +19,7 @@ class _RenderSettings(Structure):
         ("illum_y", c_float),
     ]
 
-
-if cfuncs:
+if _render_outline:
     def outline(qimage, border_width=None, illum_angle=0, rel_strength=.015, max_strength=120):
         '''add piece outline to the given qimage.
         border_width gives a relative scale for the border. Leave at None to auto-set.
@@ -42,7 +36,7 @@ if cfuncs:
         illum_y = -math.cos(illum_angle*math.pi/180.)
 
         settings = _RenderSettings(int(border_width), max_strength, rel_strength, illum_x, illum_y)
-        cfuncs.outline(c_ulonglong(imgptr), c_int(w), c_int(h), settings)
+        _render_outline.outline(int(imgptr), w, h, bytes(settings))
 else:
     def outline(*args, **kwargs):
         pass

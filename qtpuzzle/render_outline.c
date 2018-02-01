@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <Python.h>
+
 #define EXPORT __attribute__((visibility("default")))
 
 #define LONG uint32_t
@@ -349,4 +351,61 @@ EXPORT void outline(LONG img[], int width, int height, RenderSettings render_set
     free(xydata.dist);
     free(xydata.orig_img);
     free(backlog);
+}
+
+static PyObject* _fill(PyObject* self, PyObject* args) {
+    LONG value;
+    Py_buffer array_buf;
+    if (!PyArg_ParseTuple(args, "ky*", &value, &array_buf)) {
+        return NULL;
+    }
+    if (array_buf.readonly) {
+        PyErr_SetString(
+            PyExc_ValueError,
+            "array is readonly"
+        );
+        return NULL;
+    }
+    
+    // Let's live dangerous and not check that the array elem type is bytes.
+    fill(value, array_buf.buf, array_buf.len/4);
+    
+    PyBuffer_Release(&array_buf);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* _outline(PyObject* self, PyObject* args) {
+    uint64_t imgptr;
+    int width;
+    int height;
+    Py_buffer settings_buf;
+    if (!PyArg_ParseTuple(args, "Kiiy*", &imgptr, &width, &height, &settings_buf)) {
+        return NULL;
+    }
+    
+    // Let's live dangerous and not check that the array elem type is bytes.
+    outline((LONG*)imgptr, width, height, *((RenderSettings*)(settings_buf.buf)));
+    
+    PyBuffer_Release(&settings_buf);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyMethodDef render_outline_methods[] = {
+    {"fill", _fill, METH_VARARGS, "fill(value, bytes_obj): fill LONG array with given value"},
+    {"outline", _outline, METH_VARARGS, "outline(long* img, int width, int height, RenderSettings s)"},
+    {NULL, NULL, 0, NULL}
+};
+
+static struct PyModuleDef render_outline_module = {
+    PyModuleDef_HEAD_INIT,
+    "_render_outline",
+    "outline render C module",
+    -1,
+    render_outline_methods
+};
+    
+PyMODINIT_FUNC PyInit__render_outline(void) {
+    return PyModule_Create(&render_outline_module);
 }
