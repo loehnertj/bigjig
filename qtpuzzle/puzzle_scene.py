@@ -20,7 +20,7 @@ L = lambda: logging.getLogger(__name__)
 KEYS = {
     # non-drag actions
     'grab': [Qt.LeftButton, Qt.Key_Space],
-    'sel_clear': [Qt.Key_W],
+    'sel_clear': [Qt.Key_W, Qt.MiddleButton],
     'sel_rearrange': [Qt.Key_E],
     'rotate_CW': [Qt.RightButton, Qt.Key_D],
     'rotate_CCW': [Qt.Key_A],
@@ -28,7 +28,7 @@ KEYS = {
 
     # drag actions
     'pan': [Qt.LeftButton, Qt.Key_Space],
-    'deselect': [Qt.Key_W],
+    'deselect': [Qt.Key_W, Qt.MiddleButton],
 
     # both
     'select': [Qt.RightButton, Qt.Key_S],
