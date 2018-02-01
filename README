@@ -7,13 +7,11 @@ For the moment, this is just dumped here with all flaws that might or might not 
 
 Python 3 ONLY. No it won't work with python2. Move on.
 
-You need python3-pyqt4, python3-pyqt4.qtopengl, python3-invoke, gcc.
+You need python3-pyqt4, python3-pyqt4.qtopengl, gcc.
 
-gcc is required to build qtpuzzle.render_outline module.
+Install with `pip install -U .`
 
-Use `inv all` to build. Which means, build the C module and generate qt-ui files.
-
-Start with: `./puzzle2`
+Run with `bigjig`.
 
 
 
