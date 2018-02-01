@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <Python.h>
+
 #define EXPORT __attribute__((visibility("default")))
 
 #define LONG uint32_t
@@ -349,4 +351,25 @@ EXPORT void outline(LONG img[], int width, int height, RenderSettings render_set
     free(xydata.dist);
     free(xydata.orig_img);
     free(backlog);
+}
+
+static PyObject* do_nothing(PyObject* self, PyObject* args) {
+    return Py_None;
+}
+
+static PyMethodDef render_outline_methods[] = {
+    {"do_nothing", do_nothing, METH_VARARGS, "Do nothing"},
+    {NULL, NULL, 0, NULL}
+};
+
+static struct PyModuleDef render_outline_module = {
+    PyModuleDef_HEAD_INIT,
+    "_render_outline",
+    "outline render C module",
+    -1,
+    render_outline_methods
+};
+    
+PyMODINIT_FUNC PyInit__render_outline(void) {
+    return PyModule_Create(&render_outline_module);
 }
