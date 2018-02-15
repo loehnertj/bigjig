@@ -294,8 +294,10 @@ class GoldbergEngine(object):
         # 1.0 still leaves the slightest trace of a glitch. but making the stroke thicker makes the plugs appear non-matching even when they belong together.
         # 2016-06-18: changed to 0.5 -- bevel looks better
         painter.setPen(QPen(Qt.black, 0.5))
-        if not o.outline_only:
+        if o.outline_only:
             painter.setBrush(Qt.NoBrush)
+        else:
+            painter.setBrush(Qt.SolidPattern)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.drawPath(path)
         painter.end()

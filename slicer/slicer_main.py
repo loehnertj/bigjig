@@ -132,7 +132,7 @@ class SlicerMain(QDialog):
         )
         o.board.basefolder=dst_path
         o.board.imagefolder=os.path.join(dst_path, 'pieces')
-        engine = GoldbergEngine(o.add_piece_func, o.add_relation_func, o.settings, outline_only=True)
+        engine = GoldbergEngine(o.add_piece_func, o.add_relation_func, o.settings, outline_only=False)
         engine(grid_generator.generate_grid, piece_count, o.source_image.width(), o.source_image.height())
         o.board.reset_puzzle()
         o.board.save_puzzle()
@@ -163,7 +163,7 @@ class SlicerMain(QDialog):
         painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
         def preview_add_piece_func(piece_id, mask_image, offset):
             painter.drawImage(offset, mask_image)
-        engine = GoldbergEngine(preview_add_piece_func, lambda id1,id2: None, o.settings)
+        engine = GoldbergEngine(preview_add_piece_func, lambda id1,id2: None, o.settings, outline_only=True)
         engine(o._cur_grid_generator().generate_grid, 30, size.width(), size.height())
         painter.end()
         
