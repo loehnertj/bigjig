@@ -10,6 +10,7 @@ from PyQt4.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
 from PyQt4.QtGui import QBrush, QColor, QPen, QPixmap
 from PyQt4.QtGui import QGraphicsScene, QGraphicsRectItem
 
+
 from .input_tracker import InputTracker
 from .cluster_widget import ClusterWidget
 #from puzzleboard.puzzle_board import PuzzleBoard
@@ -25,6 +26,7 @@ KEYS = {
     'rotate_CW': [Qt.RightButton, Qt.Key_D],
     'rotate_CCW': [Qt.Key_A],
     'zoom': [Qt.Key_Q],
+    'piecemenu': [Qt.Key_F],
 
     # drag actions
     'pan': [Qt.LeftButton, Qt.Key_Space],
@@ -33,7 +35,7 @@ KEYS = {
     # both
     'select': [Qt.RightButton, Qt.Key_S],
     
-    'fullscreen': [Qt.Key_F, Qt.Key_Escape],
+    'fullscreen': [Qt.Key_Escape],
 }
 
 # in seconds
@@ -335,3 +337,9 @@ class PuzzleScene(QGraphicsScene):
                 o.clearSelection()
             elif iev.key in KEYS['grab']:
                 o.toggle_grab_mode(iev.startScenePos)
+            elif iev.key in KEYS['piecemenu']:
+                pos = iev.startScenePos
+                piece_item = o.itemAt(iev.startScenePos)
+                if piece_item:
+                    menu = piece_item.get_menu()
+                    menu.exec(iev.startScreenPos)

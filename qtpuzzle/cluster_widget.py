@@ -7,14 +7,17 @@ from PyQt4.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
 from PyQt4.QtGui import QImage, QPixmap, QColor, QStaticText, QStyle, QPen
 from PyQt4.QtGui import QGraphicsItem, QGraphicsWidget, QGraphicsPixmapItem
 
+from PyQt4.QtGui import QMenu, QAction, QIcon, QPixmap
+
 from .render_outline import outline
 
 _zvalue = 0.0
 
 class PieceItem(QGraphicsPixmapItem):
-    def __init__(o, parent, pieceid, w, h):
+    def __init__(o, parent, pieceid, w, h, dominant_colors):
         QGraphicsPixmapItem.__init__(o, parent=parent)
         o.id = pieceid
+        o.dominant_colors = dominant_colors
         o.img = None
         o._got_image = False
         # create dummy pixmap, transparent
@@ -42,6 +45,19 @@ class PieceItem(QGraphicsPixmapItem):
         p.setPos(o.pos())
         p.updateRotation(parent.rotation())
         return p
+
+    def get_menu(o):
+        m = QMenu()
+        # Offer at most 4 colors
+        for color in o.dominant_colors[:4]:
+            q_color = QColor(*color)
+            colortxt = get_color_name(q_color)
+            pixmap = QPixmap(32,32)
+            pixmap.fill(QColor(*color))
+            icon = QIcon(pixmap)
+            action = QAction(icon, "Find %s pieces" % colortxt, m)
+            m.addAction(action)
+        return m
         
 class ClusterWidget(QGraphicsWidget):
     def __init__(o, clusterid, pieces, rotations, client):
@@ -69,7 +85,7 @@ class ClusterWidget(QGraphicsWidget):
             
     def add_piece(o, piece):
         #path = os.path.join(o.puzzle_board.imagefolder, piece.image)
-        item = PieceItem(o, piece.id, piece.w, piece.h)
+        item = PieceItem(o, piece.id, piece.w, piece.h, piece.dominant_colors)
         item.setPos(piece.x0, piece.y0)
         
     def setPieceImages(o, pixmaps):
@@ -188,3 +204,61 @@ class ClusterWidget(QGraphicsWidget):
             o._grab_local_ofs = QPointF(xr, yr)
             o.setClusterRotation(o.clusterRotation() + rotate)
         o.setPos(scene_pos + o._grab_local_ofs)
+
+def get_color_name(q_color):
+    h = q_color.hsvHue()
+    s = q_color.hsvSaturation() / 255.0
+    v = q_color.value() / 255.0
+    # ...n = ..name
+    # saturated hue's name
+    if h < 20:
+        hn = 'red'
+    elif h < 45:
+        hn = 'orange' if v > .75 else 'brown'
+    elif h < 75:
+        hn = 'yellow'
+    elif h < 140:
+        hn = 'green'
+    elif h < 190:
+        hn = 'cyan'
+    elif h < 260:
+        hn = 'blue'
+    elif h < 315:
+        hn = 'purple'
+    elif h < 345:
+        hn = 'pink'
+    else:
+        hn = 'red'
+    # Black end
+    if v < .1:
+        return 'black'
+    # Bright end
+    if v > .9:
+        if s > .75:
+            return 'bright %s' % hn
+        elif s > .3:
+            return 'light %s' % hn
+        elif s > .1:
+            return '%s-tinted white' % hn
+        else:
+            return 'bright white'
+    # Describe hue-and-saturation
+    if s > .75:
+        hsn = hn
+    elif s > .3:
+        hsn = 'pale %s' % hn
+    elif s > .1:
+        hsn = '%sish gray' % hn
+    else:
+        hsn = 'gray'
+    
+    # Describe brightness
+    v_shift = v - s / 4.0
+    if v_shift > 0.72:
+        return 'light %s' % hsn
+    elif v_shift > 0.25:
+        return hsn
+    elif v_shift > 0.0:
+        return "dark %s" % hsn
+    else:
+        return 'very dark %s' % hsn
