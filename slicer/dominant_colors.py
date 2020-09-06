@@ -1,9 +1,18 @@
-'''Find the dominant colors of an image.'''
+'''Find the dominant colors of an image or puzzle board.
+
+``find_colors`` finds dominant colors in a single given QImage.
+
+``update_colors_all_pieces`` finds dominant colors in the given puzzle board.
+
+You can execute this module to recalculate dominant colors for an existing puzzle:
+
+``python -m slicer.dominant_colors <path_to_puzzlefolder>``
+'''
 
 import sys
+import os
 import attr
 import itertools as it
-from contextlib import contextmanager
 import numpy as np
 try:
     from scipy.ndimage.measurements import center_of_mass
@@ -11,9 +20,13 @@ except ImportError:
     print('scipy unavailable: color extraction will be less accurate.')
     center_of_mass = None
 from PyQt4.QtGui import QImage
+from puzzleboard.puzzle_board import PuzzleBoard
+
+#import matplotlib.pyplot as plt
 
 __all__ = [
     'find_colors',
+    'update_colors_all_pieces',
 ]
 
 @attr.s
@@ -25,30 +38,26 @@ def qimage2array(image):
     assert image.format() == QImage.Format_ARGB32
     w = image.width()
     h = image.height()
-    # flatten image already
     ptr = image.constBits()
     ptr.setsize(image.byteCount())
-    a = np.array(ptr).reshape(w*h, 4)
+    a = np.array(ptr, dtype='uint8').reshape(h, w, 4)
     return a
 
-# debug methods
-@contextmanager
-def mplaxes():
-    import matplotlib.pyplot as plt
-    ax = plt.gca()
-    yield ax
-    plt.show()
-    
-def showcolors(*clists):
-    with mplaxes() as ax:
-        ax.imshow(np.array([[cluster.rgb for cluster in clist] for clist in clists]))
-        
-def histograms(colors):
-    with mplaxes() as ax:
-        ax.plot(colors.sum(axis=2).sum(axis=1), scale, 'r-')
-        ax.plot(colors.sum(axis=2).sum(axis=0), scale, 'g-')
-        ax.plot(colors.sum(axis=1).sum(axis=0), scale, 'b-')
-        
+
+def debug_show(imgarr, old_clusters, clusters):
+    f = plt.figure()
+    ax = f.subplots()
+    ax.imshow(imgarr[:, :, [2, 1, 0, 3]])
+    f = plt.figure()
+    ax = f.subplots()
+    ax.imshow(np.array(
+        [
+        #    [cluster.rgb for cluster in old_clusters],
+            [cluster.rgb for cluster in clusters]
+        ]
+    ))
+
+
 # required methods
 scale = np.linspace(0., 1.0, 64, endpoint=False)
 #RR, GG, BB = np.meshgrid(scale, scale, scale)
@@ -56,27 +65,51 @@ RR = scale[:,None,None]
 GG = scale[None,:,None]
 BB = scale[None,None,:]
 def distsq(cluster):
+    """square of euclidean distance"""
     cr, cg, cb = cluster.rgb
     result= (RR-cr)**2 + (GG-cg)**2 + (BB-cb)**2
     return result
         
 
-def find_colors(image, cluster_radius=0.25, threshold=0.03):
-    '''cluster_radius: size of cluster sphere
-    threshold: min percentage of pixels required in a cluster
+def find_colors(image, cluster_radius=0.25, threshold=0.01):
+    '''Finds dominant colors in the image.
+
+    The algorithm works roughly like this:
+    
+     * Tally up all image pixels in R,G,B space.
+     * Scan the RGB space with a fixed and find the (raster) color with most counts nearby.
+     * Remember this color and discard counts within the cluster
+     * Repeat until most of the image's colors are covered by clusters.
+     * Then, calculate actual center-of-mass for all clusters by k-means.
+    
+    Parameters:
+        image (QImage instance): the image to analyse
+        cluster_radius (float): size of cluster sphere
+        threshold (float): min percentage of pixels required in a cluster
+
+    Returns:
+        List of lists [r,g,b]
+
+    The cluster_radius determines the "granularity" of the result. Lower
+    cluster_radius will lead to dramatically longer runtimes.
+    
+    Smoothing: Preferably do *not* apply pre-smoothing. It tends to degrade the result.
     '''
+    w = image.width()
+    h = image.height()
     imgarr = qimage2array(image)
-    #with mplaxes() as ax:
-    #    ax.imshow(imgarr.reshape(image.width(), image.height(), 4)[:, :, [2, 1, 3]])
+    
+    imgarr_flat = imgarr.reshape(w*h, 4)
         
     # bin all pixels into a 64x64x64 array of all possible RGB coordinates.
     colors = np.zeros((64, 64, 64), dtype=float)
-    cidx = tuple([(imgarr[:, n]/4.).astype(int) for n in [2,1,0]])
+    cidx = tuple([(imgarr_flat[:, n]/4.).astype(int) for n in [2,1,0]])
     # add up weighted by alpha value
-    np.add.at(colors, cidx, imgarr[:, 3])
+    imgarr_alpha = imgarr_flat[:,3]
+    np.add.at(colors, cidx, imgarr_alpha)
     
     # normalize to % of image; 255.0 = max alpha value
-    colors /= imgarr[:, 3].sum()
+    colors /= imgarr_alpha.sum()
     
     # Set initial clusters list empty.
     clusters = []
@@ -116,8 +149,9 @@ def find_colors(image, cluster_radius=0.25, threshold=0.03):
     old_clusters = clusters
     if center_of_mass:
         clusters = relax_cluster_positions(colors, clusters)
-    #showcolors(old_clusters, clusters)
-    return clusters
+
+    #debug_show(imgarr, old_clusters, clusters)
+    return [(c.rgb*255).astype(int).tolist() for c in clusters]
         
         
 def relax_cluster_positions(colors, clusters, move_threshold=0.01):
@@ -141,10 +175,42 @@ def relax_cluster_positions(colors, clusters, move_threshold=0.01):
             moved = max(moved, sum((center-cluster.rgb)**2)**0.5)
             cluster.rgb = center
     return clusters
-    
-def main(filename):
-    image = QImage(filename)
+
+def update_colors_all_pieces(board, qimages=None):
+    '''Calculate and store dominant colors for all pieces.
+
+    Parameters:
+        board (PuzzleBoard instance): board to update.
+        qimages (dict pieceid->QImage): piece images.
+
+    Missing piece images are loaded on the fly.
+    '''
+    qimages = qimages or {}
+    for piece in board.pieces:
+        try:
+            img = qimages[piece.id]
+        except KeyError:
+            path = os.path.join(board.imagefolder, piece.image)
+            img = QImage(path)
+        piece.dominant_colors = find_colors(img)
+        print(piece.id, piece.image, piece.dominant_colors)
+
+def main(puzzlepath):
+    board = PuzzleBoard.from_folder(puzzlepath)
+    update_colors_all_pieces(board)
+    board.save_puzzle()
+
+def testmain(filename):
+    from pathlib import Path
+    from random import choice
+    p = Path(filename)
+    if p.is_dir():
+        files = list(p.glob('*.png'))
+        p = choice(files)
+
+    image = QImage(str(p))
     clusters = find_colors(image)
-        
+    plt.show()
+
 if __name__=='__main__':
     main(sys.argv[1])
