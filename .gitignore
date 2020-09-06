@@ -9,3 +9,4 @@
 /gfx/Keybindings.png
 build/**
 dist/**
+**/.mypy_cache
