@@ -13,6 +13,7 @@ from puzzleboard.link import Link
 from .goldberg_engine import GoldbergEngine, GBEngineSettings
 from .slicerUI import Ui_Slicer
 from .preview_file_dialog import PreviewFileDialog
+from .dominant_colors import find_colors
 from . import grid_rect
 from . import grid_hex
 from . import grid_cairo
@@ -182,6 +183,7 @@ class SlicerMain(QDialog):
         # save pieceImage as pieces/piece<id>.png
         imgfile = 'piece%d.png'%piece_id
         pieceImage.save(os.path.join(o.board.imagefolder, imgfile))
+        dominant_colors = find_colors(pieceImage)
         # add piece to puzzleboard
         o.board.pieces.append(Piece(
             id=piece_id,
@@ -190,6 +192,7 @@ class SlicerMain(QDialog):
             y0=offset.y(),
             w=pieceImage.width(),
             h=pieceImage.height(),
+            dominant_colors=dominant_colors,
         ))
         
     def add_relation_func(o, piece_id_1, piece_id_2):
