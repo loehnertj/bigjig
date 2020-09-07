@@ -9,6 +9,7 @@ from random import shuffle
 from PyQt4.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
 from PyQt4.QtGui import QBrush, QColor, QPen, QPixmap
 from PyQt4.QtGui import QGraphicsScene, QGraphicsRectItem
+from PyQt4.QtGui import QMenu, QAction
 
 
 from .input_tracker import InputTracker
@@ -22,11 +23,10 @@ KEYS = {
     # non-drag actions
     'grab': [Qt.LeftButton, Qt.Key_Space],
     'sel_clear': [Qt.Key_W, Qt.MiddleButton],
-    'sel_rearrange': [Qt.Key_E],
+    'ctxmenu': [Qt.Key_E],
     'rotate_CW': [Qt.RightButton, Qt.Key_D],
     'rotate_CCW': [Qt.Key_A],
     'zoom': [Qt.Key_Q],
-    'piecemenu': [Qt.Key_F],
 
     # drag actions
     'pan': [Qt.LeftButton, Qt.Key_Space],
@@ -145,6 +145,16 @@ class PuzzleScene(QGraphicsScene):
         for cw in o.cluster_map.values():
             cw.setPieceImages(pixmaps)
         o._get_next_pieces()
+
+    def get_menu_items(o, menu, iev):
+        if o.selectedItems():
+            a = menu.addAction(
+                'Rearrange selection',
+                lambda *args: o.selectionRearrange(pos=iev.lastScenePos)
+            )
+
+    def select_by_color(o, color):
+        print('select by color: ', color)
 
     # Piece movement #######################################
     def toggle_grab_mode(o, scene_pos, grab_active=None):
@@ -331,15 +341,17 @@ class PuzzleScene(QGraphicsScene):
                     if not item: return
                     widget = item.parentWidget()
                     widget.setSelected(not widget.isSelected())
-            elif iev.key in KEYS['sel_rearrange']:
-                o.selectionRearrange(iev.lastScenePos)
             elif iev.key in KEYS['sel_clear']:
                 o.clearSelection()
             elif iev.key in KEYS['grab']:
                 o.toggle_grab_mode(iev.startScenePos)
-            elif iev.key in KEYS['piecemenu']:
+            elif iev.key in KEYS['ctxmenu']:
                 pos = iev.startScenePos
                 piece_item = o.itemAt(iev.startScenePos)
+                menu = QMenu()
+                o.get_menu_items(menu, iev)
                 if piece_item:
-                    menu = piece_item.get_menu()
-                    menu.exec(iev.startScreenPos)
+                    piece_item.get_menu_items(menu, o)
+                menu.popup(iev.startScreenPos)
+                # store the variable, so it doesn't get GC'ed
+                o.__menu = menu

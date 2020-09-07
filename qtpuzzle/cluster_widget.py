@@ -46,8 +46,7 @@ class PieceItem(QGraphicsPixmapItem):
         p.updateRotation(parent.rotation())
         return p
 
-    def get_menu(o):
-        m = QMenu()
+    def get_menu_items(o, menu, puzzle_scene):
         # Offer at most 4 colors
         for color in o.dominant_colors[:4]:
             q_color = QColor(*color)
@@ -55,9 +54,9 @@ class PieceItem(QGraphicsPixmapItem):
             pixmap = QPixmap(32,32)
             pixmap.fill(QColor(*color))
             icon = QIcon(pixmap)
-            action = QAction(icon, "Find %s pieces" % colortxt, m)
-            m.addAction(action)
-        return m
+            def cb(*args, color=color):
+                puzzle_scene.select_by_color(color)
+            a = menu.addAction(icon, "Find %s pieces" % colortxt, cb)
         
 class ClusterWidget(QGraphicsWidget):
     def __init__(o, clusterid, pieces, rotations, client):
