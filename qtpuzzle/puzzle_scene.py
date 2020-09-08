@@ -14,6 +14,7 @@ from PyQt4.QtGui import QMenu, QAction
 
 from .input_tracker import InputTracker
 from .cluster_widget import ClusterWidget
+from .select_by_color_dlg import select_by_color_dlg
 #from puzzleboard.puzzle_board import PuzzleBoard
 
 
@@ -154,7 +155,21 @@ class PuzzleScene(QGraphicsScene):
             )
 
     def select_by_color(o, color):
-        print('select by color: ', color)
+        # Only select among unconnected pieces.
+        pieceItems = [
+            items[0]
+            for cw in o.cluster_map.values()
+            for items in [list(cw.pieceItems())]
+            if len(items) == 1
+        ]
+        piece_ids = select_by_color_dlg(color, pieceItems)
+        piece_ids = set(piece_ids)
+        for cw in o.cluster_map.values():
+            pieces = list(cw.pieceItems())
+            cw.setSelected(
+                len(pieces) == 1 and pieces[0].id in piece_ids
+            )
+
 
     # Piece movement #######################################
     def toggle_grab_mode(o, scene_pos, grab_active=None):

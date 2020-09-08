@@ -18,6 +18,7 @@ class PieceItem(QGraphicsPixmapItem):
         QGraphicsPixmapItem.__init__(o, parent=parent)
         o.id = pieceid
         o.dominant_colors = dominant_colors
+        o.angle_deg = 0
         o.img = None
         o._got_image = False
         # create dummy pixmap, transparent
@@ -31,19 +32,24 @@ class PieceItem(QGraphicsPixmapItem):
         o._got_image = True
         
     def updateRotation(o, angle_deg):
+        o.angle_deg = angle_deg
         if not o._got_image:
             return
         img = o.img.copy(o.img.rect())
         outline(img, illum_angle=-angle_deg-30)
         o.setPixmap(QPixmap.fromImage(img))
         
-    def copy_to(o, parent):
+    def copy_to(o, parent, rotate=True):
         '''copies this item to the ClusterWidget parent.'''
-        p = PieceItem(parent, o.id, o.img.width(), o.img.height())
+        p = PieceItem(parent, o.id, o.img.width(), o.img.height(), o.dominant_colors)
+        p.angle_deg = o.angle_deg
         p.img = o.img.copy(o.img.rect())
         p._got_image = True
         p.setPos(o.pos())
-        p.updateRotation(parent.rotation())
+        if rotate:
+            p.updateRotation(parent.rotation())
+        else:
+            p.setPixmap(o.pixmap())
         return p
 
     def get_menu_items(o, menu, puzzle_scene):
