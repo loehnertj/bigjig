@@ -155,10 +155,15 @@ class PuzzleScene(QGraphicsScene):
             )
 
     def select_by_color(o, color):
+        # If a selection exists, restrict to selected pieces.
+        clusters = o.selectedItems()
+        if not clusters:
+            clusters = list(o.cluster_map.values())
+
         # Only select among unconnected pieces.
         pieceItems = [
             items[0]
-            for cw in o.cluster_map.values()
+            for cw in clusters
             for items in [list(cw.pieceItems())]
             if len(items) == 1
         ]
