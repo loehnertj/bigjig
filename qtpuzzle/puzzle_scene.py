@@ -154,7 +154,7 @@ class PuzzleScene(QGraphicsScene):
                 lambda *args: o.selectionRearrange(pos=iev.lastScenePos)
             )
 
-    def select_by_color(o, color):
+    def select_by_color(o, color, pos=None):
         # If a selection exists, restrict to selected pieces.
         clusters = o.selectedItems()
         if not clusters:
@@ -168,12 +168,15 @@ class PuzzleScene(QGraphicsScene):
             if len(items) == 1
         ]
         piece_ids = select_by_color_dlg(color, pieceItems)
+        if not piece_ids:
+            return
         piece_ids = set(piece_ids)
         for cw in o.cluster_map.values():
             pieces = list(cw.pieceItems())
             cw.setSelected(
                 len(pieces) == 1 and pieces[0].id in piece_ids
             )
+        o.selectionRearrange(pos=pos)
 
 
     # Piece movement #######################################
@@ -196,16 +199,19 @@ class PuzzleScene(QGraphicsScene):
                 widgets = o.selectedItems()
             else:
                 widgets = [widget]
-            o.grabbed_widgets = {}
-            for widget in widgets:
-                if widget.grabLocally(scene_pos):
-                    o.grabbed_widgets[widget.clusterid] = widget
-            o._move_rotation = 0
-            o._last_move_send_time = time()
-            if o.grabbed_widgets:
-                # send grab to the server
-                ids = list(o.grabbed_widgets.keys())
-                o.client.grab(clusters=ids)
+            o._lift(widgets, scene_pos)
+
+    def _lift(o, widgets, scene_pos):
+        o.grabbed_widgets = {}
+        for widget in widgets:
+            if widget.grabLocally(scene_pos):
+                o.grabbed_widgets[widget.clusterid] = widget
+        o._move_rotation = 0
+        o._last_move_send_time = time()
+        if o.grabbed_widgets:
+            # send grab to the server
+            ids = list(o.grabbed_widgets.keys())
+            o.client.grab(clusters=ids)
         L().debug("lift: " + o.grabbed_widgets.__repr__())
 
     def dropGrabbedWidgets(o):
@@ -371,7 +377,7 @@ class PuzzleScene(QGraphicsScene):
                 menu = QMenu()
                 o.get_menu_items(menu, iev)
                 if piece_item:
-                    piece_item.get_menu_items(menu, o)
+                    piece_item.get_menu_items(menu, o, iev)
                 menu.popup(iev.startScreenPos)
                 # store the variable, so it doesn't get GC'ed
                 o.__menu = menu

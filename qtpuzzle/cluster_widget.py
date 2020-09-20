@@ -52,7 +52,7 @@ class PieceItem(QGraphicsPixmapItem):
             p.setPixmap(o.pixmap())
         return p
 
-    def get_menu_items(o, menu, puzzle_scene):
+    def get_menu_items(o, menu, puzzle_scene, ievent):
         # Offer at most 4 colors
         for color in o.dominant_colors[:4]:
             q_color = QColor(*color)
@@ -61,7 +61,7 @@ class PieceItem(QGraphicsPixmapItem):
             pixmap.fill(QColor(*color))
             icon = QIcon(pixmap)
             def cb(*args, color=color):
-                puzzle_scene.select_by_color(color)
+                puzzle_scene.select_by_color(color, pos=ievent.lastScenePos)
             a = menu.addAction(icon, "Find %s pieces" % colortxt, cb)
         
 class ClusterWidget(QGraphicsWidget):
