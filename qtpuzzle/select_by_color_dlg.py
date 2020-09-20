@@ -154,28 +154,42 @@ class SelectByColorDlg(QDialog):
 
 
 def rgb2Lab(rgb):
-    def func(t):
-        if (t > 0.008856):
-            return t**(1/3.)
+    # sRGB to XYZ
+    rgb = [t/255.0 for t in rgb]
+
+    # Degamma
+    def func1(u):
+        if u < 0.04045:
+            return u / 12.92
         else:
-            return 7.787 * t + 16 / 116.0
+            return ((u + 0.055) / 1.055) ** 2.4
 
-    #Conversion Matrix
-    matrix = [[0.412453, 0.357580, 0.180423],
-            [0.212671, 0.715160, 0.072169],
-            [0.019334, 0.119193, 0.950227]]
+    rgb = [func1(t) for t in rgb]
 
-    # Convert to XYZ
-    cie = [
-        sum(item*component/255.0 for item, component in zip(matrixrow, rgb))
+    # transform to XYZ
+    matrix = [[0.41239080, 0.35758434, 0.18048079],
+            [0.21263901, 0.71516868, 0.07219232],
+            [0.019933082, 0.11919478, 0.95053215]]
+    xyz = [
+        sum(item*component for item, component in zip(matrixrow, rgb))
         for matrixrow in matrix
     ]
 
-    cie[0] = cie[0] /0.950456
-    cie[2] = cie[2] /1.088754 
+    # apply D65 reference white point
+    xyz[0] /= 0.950456
+    xyz[2] /= 1.088754 
+
+    def func2(u):
+        if (u > 0.008856):
+            return u**(1/3.)
+        else:
+            return 7.787 * u + 16 / 116.0
+
+    fx, fy, fz = [func2(u) for u in xyz]
 
     # Calculate L, a, b from XYZ
-    L = 116 * cie[1] ** (1/3.0) - 16.0 if cie[1] > 0.008856 else 903.3 * cie[1]
-    a = 500*(func(cie[0]) - func(cie[1]))
-    b = 200*(func(cie[1]) - func(cie[2]))
+    L = 116.0 * fy - 16.0
+    a = 500*(fx - fy)
+    b = 200*(fy - fz)
+
     return L, a, b
