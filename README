@@ -1,4 +1,6 @@
-Jigsaw puzzle game.
+Jigsoid Jigsaw puzzle game
+
+*jigsoid [adj]*: Having the look and feel of an actual jigsaw puzzle.
 
 For the moment, this is just dumped here with all flaws that might or might not be there. Feel free to open issues / PR's.
 
@@ -11,7 +13,7 @@ You need python3-pyqt4, python3-pyqt4.qtopengl, gcc.
 
 Install with `pip install -U .`
 
-Run with `bigjig`.
+Run with `jigsoid`.
 
 
 

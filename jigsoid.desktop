@@ -1,10 +1,10 @@
 [Desktop Entry]
-Exec=bigjig
+Exec=jigsoid
 GenericName[de_DE]=Puzzle
 GenericName=Jigsaw Puzzle
-Icon=bigjig
-Name[de_DE]=BigJig
-Name=BigJig
+Icon=jigsoid
+Name[de_DE]=Jigsoid Puzzle
+Name=Jigsoid
 Terminal=false
 TerminalOptions=
 Type=Application

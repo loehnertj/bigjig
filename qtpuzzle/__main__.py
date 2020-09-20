@@ -14,7 +14,7 @@ def main():
     # Again, this is boilerplate, it's going to be the same on
     # almost every app you write
     QApplication.setOrganizationName("Aurisoft")
-    QApplication.setApplicationName("Puzzle2")
+    QApplication.setApplicationName("Jigsoid")
     app = QApplication(sys.argv)
     windows=[MainWindow()]
     windows[0].container = windows

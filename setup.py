@@ -25,11 +25,11 @@ if 'install' in sys.argv and '--single-version-externally-managed' not in sys.ar
     
 
 setup(
-    name = "bigjig",
+    name = "jigsoid",
     version = "0.0.1",
     author = "Johannes Loehnert",
     author_email = "loehnert.kde@gmx.de",
-    description = ("Serious jigsaw puzzle game"),
+    description = ("Jigsoid jigsaw puzzle game"),
     license = "BSD",
     keywords = "game",
     url = "https://github.com/loehnertj/bigjig",
@@ -42,12 +42,12 @@ setup(
     ],
     entry_points = {
         'gui_scripts': [
-            'bigjig = qtpuzzle.__main__:main'
+            'jigsoid = qtpuzzle.__main__:main'
         ],
     },
     data_files = [
-        ('share/applications', ['bigjig.desktop']),
-        ('share/icons', ['bigjig.png']),
+        ('share/applications', ['jigsoid.desktop']),
+        ('share/icons', ['jigsoid.png']),
     ],
     long_description=read('README'),
     classifiers=[

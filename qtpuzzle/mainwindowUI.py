@@ -126,7 +126,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "Puzzle", None))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Jigsoid", None))
         self.menuFile.setTitle(_translate("MainWindow", "&Puzzle", None))
         self.menuInsert.setTitle(_translate("MainWindow", "Se&lection", None))
         self.menuNetwork.setTitle(_translate("MainWindow", "&Network", None))
