@@ -49,7 +49,7 @@ setup(
         ('share/applications', ['jigsoid.desktop']),
         ('share/icons', ['jigsoid.png']),
     ],
-    long_description=read('README'),
+    long_description=read('README.md'),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Topic :: Games/Entertainment :: Puzzle Games",
