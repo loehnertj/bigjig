@@ -24,6 +24,7 @@ class MainView(QGraphicsView):
         pass
         
     def wheelEvent(self, ev):
+        self.lastMouseMoveScenePoint = self.mapToScene(ev.pos())
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         delta = 2 ** (ev.delta() / 240.)
         self.scale(delta, delta)
