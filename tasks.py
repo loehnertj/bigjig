@@ -3,19 +3,10 @@ from invoke import task, run
 
 @task
 def cfuncs():
+    raise ValueError()
     run('gcc -Wall -Wextra -O -std=gnu99 -pedantic -fPIC -fvisibility=hidden -shared qtpuzzle/render_outline.c -o qtpuzzle/_render_outline.so')
-    
-@task
-def uic():
-    run('pyuic4 qtpuzzle/mainwindow.ui --from-imports  -o qtpuzzle/mainwindowUI.py')
-    run('pyuic4 qtpuzzle/shortcut_help.ui --from-imports  -o qtpuzzle/shortcutHelpUI.py')
-    run('pyuic4 slicer/slicer.ui -o slicer/slicerUI.py')
 
-@task
-def resources():
-    run('pyrcc4 -py3 qtpuzzle/icons.qrc -o qtpuzzle/icons_rc.py')
-
-@task(uic, resources, cfuncs)
+@task(cfuncs)
 def all():
     pass
 
@@ -23,7 +14,7 @@ def all():
 def puzzle2():
     run('./puzzle2', pty=True)
 
-@task(uic)
+@task()
 def slicer():
     run('python3 slicer_standalone.py')
     

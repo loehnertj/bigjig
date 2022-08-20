@@ -8,12 +8,12 @@ L = lambda: logging.getLogger(__name__)
 
 
 # Import Qt modules
-from PyQt4 import QtCore,QtGui
-from PyQt4.QtCore import Qt, QSettings # , pyqtSignature
-from PyQt4.QtGui import QMainWindow, QFileDialog, QAction, QMessageBox, QGraphicsScene, QInputDialog
+from .utils import loadUi
+from qtpy.QtCore import Qt, QSettings # , pyqtSignature
+from qtpy.QtWidgets import QMainWindow, QFileDialog, QAction, QMessageBox, QInputDialog, QGraphicsScene
 
 # Import the compiled UI module
-from .mainwindowUI import Ui_MainWindow
+#from .mainwindowUI import Ui_MainWindow
 
 from .i18n import tr
 
@@ -34,8 +34,12 @@ class MainWindow(QMainWindow):
         self.container = []
 
         # This is always the same
-        self.ui=Ui_MainWindow()
-        self.ui.setupUi(self)
+        #self.ui=Ui_MainWindow()
+        #self.ui.setupUi(self)
+
+        #self.ui = loadUi("qtpuzzle/mainwindow.ui", self)
+
+        self.ui = loadUi("mainwindow.ui", self)
         
         mappings = dict(
             actionSave=self.save,
@@ -188,7 +192,8 @@ class MainWindow(QMainWindow):
         self.client.save_puzzle()
         
     def open(self):
-        path = QFileDialog.getOpenFileName(self, "Choose Puzzle", "puzzles", "Puzzle files (puzzle.json)")
+        path, _ = QFileDialog.getOpenFileName(self, "Choose Puzzle", "puzzles", "Puzzle files (puzzle.json)")
+        print(path)
         if path: self.load_puzzle(path)
         
     def new_puzzle(self):
@@ -254,12 +259,11 @@ class MainWindow(QMainWindow):
             self.client.save_puzzle()
         
     def on_solved(self, sender):
-        QMessageBox.information(self, "Puzzle solved.", "You did it!", "Yeehaw!!!")
+        QMessageBox.information(self, "Puzzle solved.", "You did it!")
         
     def display_shortcut_help(self, sender):
-        from PyQt4.QtGui import QDialog
-        from .shortcutHelpUI import Ui_ShortcutHelp
+        from qtpy.QtWidgets import QDialog
         d = QDialog(self)
-        Ui_ShortcutHelp().setupUi(d)
+        ui = loadUi("shortcut_help.ui", d)
         d.show()
         

@@ -14,10 +14,10 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 try:
-    import PyQt4
-    import PyQt4.QtOpenGL
+    import qtpy
+    import qtpy.QtOpenGL
 except ImportError:
-    raise ImportError('Please install PyQt4 (python3-pyqt4) and PyGt4.QtOpenGL (python3-pyqt4.qtopengl).')
+    raise ImportError('Please install qtpy (python3-qtpy) and PyGt5.QtOpenGL (python3-pyqt5.qtopengl).')
 
 if 'install' in sys.argv and '--single-version-externally-managed' not in sys.argv:
     print('Warning: Menu entry will probably not be created (use --single-version-externally-managed or pip)')

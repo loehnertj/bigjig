@@ -2,9 +2,9 @@
 """implements a QGraphicsWidget representing and showing a picture"""
 import logging as L 
 
-from PyQt4.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
-from PyQt4.QtGui import QPixmap, QColor, QStaticText
-from PyQt4.QtGui import QGraphicsWidget
+from qtpy.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
+from qtpy.QtGui import QPixmap, QColor, QStaticText
+from qtpy.QtGui import QGraphicsWidget
 
 class PictureWidget(QGraphicsWidget):
     loaded=False

@@ -8,8 +8,8 @@ __all__ = [
 
 import sys
 import logging
-from PyQt4.QtCore import QProcess
-from PyQt4.QtNetwork import QUdpSocket, QTcpSocket, QAbstractSocket, QHostAddress
+from qtpy.QtCore import QProcess
+from qtpy.QtNetwork import QUdpSocket, QTcpSocket, QAbstractSocket, QHostAddress
 from .transports import Transport
 
 L = lambda: logging.getLogger(__name__)
@@ -47,7 +47,7 @@ class QProcessTransport(Transport):
         if receivers is not None and self.sendername not in receivers:
             return
         L().debug('message to child processs: %s'%data)
-        self.process.write(data.decode('utf8'))
+        self.process.write(data)
 
     def on_ready_read(self):
         data = self.process.readAllStandardOutput().data()
@@ -99,7 +99,7 @@ class QTcpTransport(Transport):
         if receivers is not None and self.sendername not in receivers:
             return
         L().debug('message to tcp server: %s'%data)
-        self.socket.write(data.decode('utf8'))
+        self.socket.write(data)
 
     def on_ready_read(self):
         data = self.socket.readAll().data()
@@ -150,7 +150,6 @@ class QUdpTransport(Transport):
 
     def send(self, data, receivers=None):
         L().debug('message to udp %s: %s'%(receivers,data))
-        data = data.decode('utf8')
         if receivers:
             for receiver in receivers:
                 self.socket.writeDatagram(data, QHostAddress(receiver), self.port)

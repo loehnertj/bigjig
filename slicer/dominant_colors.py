@@ -20,7 +20,7 @@ try:
 except ImportError:
     print('scipy unavailable: color extraction will be less accurate.')
     center_of_mass = None
-from PyQt4.QtGui import QImage
+from qtpy.QtGui import QImage
 from puzzleboard.puzzle_board import PuzzleBoard
 
 #import matplotlib.pyplot as plt

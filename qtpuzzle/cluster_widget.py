@@ -3,11 +3,9 @@ import logging as L
 import os
 from math import sin, cos, pi
 
-from PyQt4.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
-from PyQt4.QtGui import QImage, QPixmap, QColor, QStaticText, QStyle, QPen
-from PyQt4.QtGui import QGraphicsItem, QGraphicsWidget, QGraphicsPixmapItem
-
-from PyQt4.QtGui import QMenu, QAction, QIcon, QPixmap
+from qtpy.QtCore import Qt, QPointF
+from qtpy.QtGui import QImage, QPixmap, QColor, QPen, QIcon, QPixmap
+from qtpy.QtWidgets import QGraphicsItem, QGraphicsWidget, QGraphicsPixmapItem
 
 from .render_outline import outline
 

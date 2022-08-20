@@ -2,16 +2,17 @@ import os,sys
 import logging as L
 
 # Import Qt modules
-from PyQt4 import QtCore,QtGui
-from PyQt4.QtCore import Qt, QPoint, QRect # , pyqtSignature
-from PyQt4.QtGui import QDialog, QImage, QPainter, QFileDialog, QColor, QPixmap
+from qtpy import QtCore,QtGui
+from qtpy.QtCore import Qt, QPoint, QRect # , pyqtSignature
+from qtpy.QtGui import QColor, QImage, QPixmap, QPainter
+from qtpy.QtWidgets import QDialog, QFileDialog
 
 from puzzleboard.puzzle_board import PuzzleBoard
 from puzzleboard.piece import Piece
 from puzzleboard.link import Link
 
 from .goldberg_engine import GoldbergEngine, GBEngineSettings
-from .slicerUI import Ui_Slicer
+from .utils import loadUi
 from .preview_file_dialog import PreviewFileDialog
 from .dominant_colors import find_colors
 from . import grid_rect
@@ -34,8 +35,7 @@ from . import grid_rotrex
 class SlicerMain(QDialog):
     def __init__(o):
         QDialog.__init__(o)
-        o.ui = Ui_Slicer()
-        o.ui.setupUi(o)
+        o.ui = loadUi("slicer.ui", o)
         o.ui.btnOpenImageFile.clicked.connect(o.pick_source_image);
         o.ui.btnSaveTo.clicked.connect(o.pick_dst)
         o.grid_types = [
@@ -152,7 +152,7 @@ class SlicerMain(QDialog):
         pfd.exec_()
         
     def pick_dst(o):
-        path = QFileDialog.getSaveFileName(o, "Choose folder", "", "Directory (*)")
+        path, _ = QFileDialog.getSaveFileName(o, "Choose folder", "", "Directory (*)")
         if path:
             o.ui.txtSaveTo.setText(path)
             
@@ -216,7 +216,7 @@ def _safeQImageCopy(source, rect):
     # Strangely, source.copy(rect) does not work. It produces black borders.
 
 def run_standalone():
-    from PyQt4.QtGui import QApplication
+    from qtpy.QtWidgets import QApplication
     app = QApplication(sys.argv)
     windows=[SlicerMain()]
     windows[0].show()

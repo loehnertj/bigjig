@@ -1,10 +1,8 @@
 from math import sin, cos, pi
-from PyQt4.QtGui import QDialog
-from PyQt4.QtGui import QGraphicsScene, QGraphicsView, QVBoxLayout
-from PyQt4.QtGui import QGraphicsWidget
-from PyQt4.QtGui import QColor, QBrush, QPen
-from PyQt4.QtCore import Qt, QPointF
-from PyQt4.QtOpenGL import QGLWidget
+from qtpy.QtCore import Qt, QPointF
+from qtpy.QtGui import QColor, QBrush, QPen
+from qtpy.QtWidgets import QDialog, QGraphicsScene, QGraphicsView, QVBoxLayout, QGraphicsWidget
+from qtpy.QtOpenGL import QGLWidget
 
 def select_by_color_dlg(color, pieceItems):
     d = SelectByColorDlg(color, pieceItems)
@@ -38,7 +36,7 @@ class _RootItem(QGraphicsWidget):
 class _MyView(QGraphicsView):
     def wheelEvent(self, ev):
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
-        delta = 2 ** (ev.delta() / 240.)
+        delta = 2 ** (ev.angleDelta().y() / 240.)
         self.scale(delta, delta)
 
     def showEvent(self, event):

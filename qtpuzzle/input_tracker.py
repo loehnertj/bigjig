@@ -2,8 +2,8 @@ import types
 import logging
 L = lambda: logging.getLogger(__name__)
 
-from PyQt4.QtCore import Qt, QPoint, QPointF, QSizeF, QSize, QRectF
-from PyQt4.QtGui import QGraphicsView, QGraphicsScene
+from qtpy.QtCore import Qt, QPoint, QPointF
+from qtpy.QtWidgets import QGraphicsView, QGraphicsScene
 
 class InputTrackerEvent(object):
     def __init__(o):

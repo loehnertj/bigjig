@@ -6,10 +6,10 @@ import logging
 from time import time
 from random import shuffle
 
-from PyQt4.QtCore import Qt, QPointF, QSizeF, QSize, QRectF
-from PyQt4.QtGui import QBrush, QColor, QPen, QPixmap
-from PyQt4.QtGui import QGraphicsScene, QGraphicsRectItem
-from PyQt4.QtGui import QMenu, QAction
+from qtpy.QtCore import Qt, QRectF
+from qtpy.QtGui import QBrush, QColor, QPen, QTransform
+from qtpy.QtWidgets import QGraphicsScene, QGraphicsRectItem
+from qtpy.QtWidgets import QMenu
 
 
 from .input_tracker import InputTracker
@@ -51,7 +51,7 @@ class PuzzleScene(QGraphicsScene):
         QGraphicsScene.__init__(o, parent, *args)
         o._input_tracker = InputTracker(o, accepts=sum(KEYS.values(), []))
 
-        o.setBackgroundBrush(QBrush(QColor("darkGray")))
+        o.setBackgroundBrush(QBrush(QColor(64,64,64)))
         o.client = puzzle_client
         o.mainwindow = mainwindow
         o.cluster_map = {}
@@ -79,8 +79,7 @@ class PuzzleScene(QGraphicsScene):
         # init selection
         o._drag_start = None
         o._rubberband = QGraphicsRectItem(QRectF(0., 0., 100., 100.))
-        p = QPen(QColor(255,255,255))
-        o._rubberband.setPen(p)
+        o._rubberband.setBrush(QBrush(QColor(255,255,255, 64)))
         o._rubberband.hide()
         o.addItem(o._rubberband)
 
@@ -191,7 +190,7 @@ class PuzzleScene(QGraphicsScene):
             o.tryGrabWidgets(scene_pos)
 
     def tryGrabWidgets(o, scene_pos):
-        item = o.itemAt(scene_pos)
+        item = o.itemAt(scene_pos, QTransform())
         if item:
             widget = item.parentWidget()
             if widget.isSelected():
@@ -363,7 +362,7 @@ class PuzzleScene(QGraphicsScene):
         else:
             if iev.key in KEYS['select']:
                 if not o.grab_active:
-                    item = o.itemAt(iev.startScenePos)
+                    item = o.itemAt(iev.startScenePos, QTransform())
                     if not item: return
                     widget = item.parentWidget()
                     widget.setSelected(not widget.isSelected())
@@ -373,7 +372,7 @@ class PuzzleScene(QGraphicsScene):
                 o.toggle_grab_mode(iev.startScenePos)
             elif iev.key in KEYS['ctxmenu']:
                 pos = iev.startScenePos
-                piece_item = o.itemAt(iev.startScenePos)
+                piece_item = o.itemAt(iev.startScenePos, QTransform())
                 menu = QMenu()
                 o.get_menu_items(menu, iev)
                 if piece_item:

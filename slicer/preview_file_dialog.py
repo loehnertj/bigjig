@@ -1,11 +1,13 @@
 import sys
-from PyQt4.QtCore import Qt, QSize
-from PyQt4.QtGui import QFileDialog, QLabel, QVBoxLayout, QPixmap
+from qtpy.QtCore import Qt, QSize
+from qtpy.QtGui import QPixmap
+from qtpy.QtWidgets import QFileDialog, QLabel, QVBoxLayout
 
 
 class PreviewFileDialog(QFileDialog):
     def __init__(self, caption, directory, filter):
         QFileDialog.__init__(self, None, caption, directory, filter)
+        self.setOption(QFileDialog.DontUseNativeDialog, True)
         self.setObjectName('PreviewFileDialog')
         box = QVBoxLayout()
         self.preview = QLabel("Preview", self)
@@ -31,7 +33,7 @@ class PreviewFileDialog(QFileDialog):
 
     
 def run_standalone():
-    from PyQt4.QtGui import QApplication
+    from qtpy.QtWidgets import QApplication
     app = QApplication(sys.argv)
     pfd=PreviewFileDialog("Pick an image", "", "Image Files (*.jpg)")
     pfd.setMinimumSize(1200,600)

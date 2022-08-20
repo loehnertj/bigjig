@@ -236,7 +236,7 @@
   <customwidget>
    <class>MainView</class>
    <extends>QGraphicsView</extends>
-   <header>.main_view</header>
+   <header>qtpuzzle.main_view</header>
    <slots>
     <slot>viewAll()</slot>
    </slots>
@@ -248,7 +248,7 @@
  <connections>
   <connection>
    <sender>action_Quit</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>close()</slot>
    <hints>
@@ -264,7 +264,7 @@
   </connection>
   <connection>
    <sender>action_view_all</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>mainView</receiver>
    <slot>viewAll()</slot>
    <hints>

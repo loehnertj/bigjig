@@ -16,8 +16,8 @@
 #   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #**************************************************************************/
  
-from PyQt4.QtCore import QLineF
-from PyQt4.QtGui import QPainterPath
+from qtpy.QtCore import QLineF
+from qtpy.QtGui import QPainterPath
  
 from .util import getBestFit
 

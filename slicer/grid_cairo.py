@@ -20,8 +20,8 @@
 import itertools as it
 from math import sqrt
 
-from PyQt4.QtCore import QLineF
-from PyQt4.QtGui import QPainterPath
+from qtpy.QtCore import QLineF
+from qtpy.QtGui import QPainterPath
  
 from .util import getBestFitExtended
 

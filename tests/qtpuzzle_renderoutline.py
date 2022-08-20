@@ -1,7 +1,7 @@
 import os, sys
 from qtpuzzle.render_outline import outline
 
-from PyQt4.QtGui import QApplication, QImage, QPixmap, QLabel
+from qtpy.QtGui import QApplication, QImage, QPixmap, QLabel
 a = QApplication(sys.argv)
 myImage = QImage()
 myImage.load("puzzles/outtest/pieces/piece15.png")

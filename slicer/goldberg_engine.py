@@ -1,7 +1,7 @@
 from random import random
 
-from PyQt4.QtCore import Qt, QPointF, QLineF
-from PyQt4.QtGui import QImage, QPainter, QPen, QPainterPath
+from qtpy.QtCore import Qt, QPointF, QLineF
+from qtpy.QtGui import QImage, QPainter, QPen, QPainterPath
 
 from .util import nonuniform_rand, dsin, dcos
 
@@ -317,8 +317,8 @@ class GoldbergEngine(object):
     def _test__2piece_simple(o, image_width, image_height):
         id1, id2 = 1, 2
         
-        from PyQt4.QtCore import QPointF
-        from PyQt4.QtGui import QPainterPath
+        from qtpy.QtCore import QPointF
+        from qtpy.QtGui import QPainterPath
         path1 = QPainterPath()
         path1.moveTo(QPointF(0, 0))
         path1.lineTo(QPointF(image_width*.3, 0))

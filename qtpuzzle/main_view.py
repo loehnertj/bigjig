@@ -1,8 +1,9 @@
 import logging as L
 
-from PyQt4.QtCore import Qt, QPoint
-from PyQt4.QtGui import QGraphicsView, QPainter
-from PyQt4.QtOpenGL import QGLWidget
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QPainter
+from qtpy.QtWidgets import QGraphicsView
+from qtpy.QtOpenGL import QGLWidget
 
 from .input_tracker import InputTracker
 
@@ -26,7 +27,7 @@ class MainView(QGraphicsView):
     def wheelEvent(self, ev):
         self.lastMouseMoveScenePoint = self.mapToScene(ev.pos())
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
-        delta = 2 ** (ev.delta() / 240.)
+        delta = 2 ** (ev.angleDelta().y() / 240.)
         self.scale(delta, delta)
         self._is_view_all = False
         

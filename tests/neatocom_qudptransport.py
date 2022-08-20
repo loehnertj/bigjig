@@ -7,7 +7,7 @@ connect e.g. via nc -4u <host> 8889
 import logging
 import os, sys
 
-from PyQt4.QtGui import QApplication, QPushButton
+from qtpy.QtGui import QApplication, QPushButton
 
 from neatocom.echo_api import EchoAPI
 from neatocom.codecs import TerseCodec

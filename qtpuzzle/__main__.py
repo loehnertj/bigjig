@@ -4,7 +4,7 @@ import logging
 import os,sys
 
 # Import Qt modules
-from PyQt4.QtGui import QApplication
+from qtpy.QtWidgets import QApplication
 
 from .mainwindow import MainWindow
 

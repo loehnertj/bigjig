@@ -9,7 +9,7 @@ For the moment, this is just dumped here with all flaws that might or might not 
 
 Python 3 ONLY. No it won't work with python2. Move on.
 
-You need python3-pyqt4, python3-pyqt4.qtopengl, gcc.
+You need python3-qtpy, python3-pyqt5.qtopengl, gcc.
 
 Install with `pip install -U .`
 
